@@ -1,3 +1,4 @@
+
 Online Event Ticketing System
 Project Overview
 This project involves the development of a full-stack web application for an online event ticketing system. The system allows users to browse, search, and purchase tickets for various events such as concerts, sports games, theater shows, and more.
@@ -100,12 +101,13 @@ A timestamp indicates when the booking was created.
 These schemas define the core database structure for the project. Users can have different roles, organizers can create and manage events, and standard users can book tickets. The system admin has full control over all data.
 
 Contributors
-AbduAziz 
+Abdulaziz 
 
 Ramez
 
 Ahmed Amr
 
-Ahmed Ramy
+Ahmed Ramy Mohamed
 
 saifeleslam saadeldin
+
