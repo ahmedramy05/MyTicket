@@ -19,7 +19,7 @@ router.get("/:id", getEventById); // Get single event (public)
 
 // Protected routes
 router.post("/", authenticate, authorizeRoles("Organizer"), createEvent); // Create event (organizer)
-router.put("/:id", authenticate, authorizeRoles("Organizer"), updateEvent); // Update event (organizer)
+router.put("/:id", authenticate, authorizeRoles("Organizer", "System Admin"), updateEvent);
 router.delete("/:id", authenticate, authorizeRoles("Organizer", "System Admin"), deleteEvent); // Delete event (organizer/admin)
 router.put("/:id/status", authenticate, authorizeRoles("System Admin"), updateEventStatus); // Update event status (admin)
 
