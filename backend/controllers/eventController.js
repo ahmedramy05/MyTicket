@@ -1,4 +1,5 @@
-const Event = require("../models/eventModel");
+const Event = require("../Models/Event"); // Updated import path
+const Booking = require("../Models/Booking"); // Added for potential future booking integrations
 
 // Create Event (Organizer-Only)
 const createEvent = async (req, res) => {
@@ -18,8 +19,8 @@ const createEvent = async (req, res) => {
       category,
       ticketPrice,
       totalTickets,
-      remainingTickets: totalTickets,
-      organizer: req.user.id, // From authMiddleware
+      availableTickets: totalTickets, // Match your schema field name
+      Organizer: req.user.id, // Match your schema field name (capitalized)
       status: "pending", // Requires admin approval
     });
 
@@ -56,8 +57,11 @@ const deleteEvent = async (req, res) => {
     const event = await Event.findById(req.params.id);
     if (!event) return res.status(404).json({ error: "Event not found." });
 
-    // Check if user is admin OR the original organizer
-    if (req.user.role !== "admin" && event.organizer.toString() !== req.user.id) {
+    // Improved role checking with readable variables
+    const isAdmin = req.user.role === "System Admin";
+    const isOrganizer = event.Organizer.toString() === req.user.id;
+
+    if (!isAdmin && !isOrganizer) {
       return res.status(403).json({ error: "Unauthorized." });
     }
 
@@ -68,26 +72,41 @@ const deleteEvent = async (req, res) => {
   }
 };
 
-// Get All Approved Events (Public)
+// Get All Approved Events (Public) - With filtering
 const getAllEvents = async (req, res) => {
   try {
-    const events = await Event.find({ status: "approved" });
+    const { category, location, date } = req.query;
+    const filters = { status: "approved" };
+
+    // Apply optional filters from query parameters
+    if (category) filters.category = category;
+    if (location) filters.location = location;
+    if (date) filters.date = { $gte: new Date(date) }; // Events on or after this date
+
+    const events = await Event.find(filters);
     res.json(events);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 };
 
-// Get Organizer's Events & Analytics (Organizer-Only)
+// Get Organizer's Analytics (Organizer-Only)
 const getOrganizerAnalytics = async (req, res) => {
   try {
-    const events = await Event.find({ organizer: req.user.id });
+    const events = await Event.find({ Organizer: req.user.id });
     
-    const analytics = events.map(event => ({
-      eventId: event._id,
-      title: event.title,
-      percentageBooked: ((event.totalTickets - event.remainingTickets) / event.totalTickets * 100).toFixed(2) + "%"
-    }));
+    const analytics = events.map(event => {
+      const ticketsSold = event.totalTickets - event.availableTickets;
+      const percentageBooked = (ticketsSold / event.totalTickets * 100).toFixed(2);
+      
+      return {
+        eventId: event._id,
+        title: event.title,
+        percentageBooked: `${percentageBooked}%`,
+        ticketsSold,
+        totalTickets: event.totalTickets
+      };
+    });
 
     res.json(analytics);
   } catch (err) {
@@ -105,21 +124,24 @@ const updateEvent = async (req, res) => {
     const event = await Event.findById(eventId);
     if (!event) return res.status(404).json({ error: "Event not found." });
 
-    // Check if user is the organizer of this event
-    if (event.organizer.toString() !== req.user.id) {
-      return res.status(403).json({ error: "Unauthorized. You can only update your own events." });
-    }
+  // Check if user is authorized to update
+const isAdmin = req.user.role === "System Admin";
+const isOrganizer = event.Organizer.toString() === req.user.id;
+
+if (!isAdmin && !isOrganizer) {
+  return res.status(403).json({ error: "Unauthorized. Only organizers and administrators can update events." });
+}
 
     // Update only the allowed fields (tickets, date, location)
     const updates = {};
     if (totalTickets) {
       updates.totalTickets = totalTickets;
       // Adjust availableTickets based on how many are already sold
-      const ticketsSold = event.totalTickets - event.remainingTickets;
-      updates.remainingTickets = totalTickets - ticketsSold;
+      const ticketsSold = event.totalTickets - event.availableTickets;
+      updates.availableTickets = totalTickets - ticketsSold;
 
       // Check if new total is valid
-      if (updates.remainingTickets < 0) {
+      if (updates.availableTickets < 0) {
         return res.status(400).json({ error: "Cannot reduce tickets below number already sold." });
       }
     }
@@ -155,7 +177,7 @@ const getEventById = async (req, res) => {
 // Get Organizer's Events (Organizer-Only)
 const getOrganizerEvents = async (req, res) => {
   try {
-    const events = await Event.find({ organizer: req.user.id });
+    const events = await Event.find({ Organizer: req.user.id });
     res.json(events);
   } catch (err) {
     res.status(400).json({ error: err.message });
