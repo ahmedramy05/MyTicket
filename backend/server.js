@@ -15,6 +15,9 @@ mongoose
   .catch((err) => console.error("Could not connect to MongoDB", err));
 
 app.use(express.json());
+app.use("/api/v1/auth", require("./routes/authRoutes"));
+app.use("/api/v1/events", require("./routes/eventRoutes"));
+app.use("/api/v1/bookings", require("./routes/bookingRoutes"));
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
