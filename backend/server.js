@@ -1,11 +1,13 @@
 require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
+const cors = require("cors");
+require("dotenv").config();
 const app = express();
 
 const port = 3001;
+app.use(cors());
 
-// Replace with your MongoDB Atlas connection string
 const mongoURI =
   "mongodb+srv://Thabet:MONGOMONGO@cluster0.2wax2.mongodb.net/MyTicket?retryWrites=true&w=majority";
 
@@ -25,6 +27,6 @@ app.listen(port, () => {
 });
 
 app.get("/", (req, res) => {
-  res.send("Hello World");
+  res.send("bruh");
 });
 

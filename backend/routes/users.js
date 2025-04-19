@@ -16,6 +16,7 @@ const authenticate = require("../middleware/authentication"); // Fix import path
 const { authorize } = require("../middleware/authorization"); // Fix import path
 
 router.get("/", authenticate, authorize("System Admin"), getAllUsers);
+
 router.get("/profile", authenticate, getUserProfile);
 router.put("/profile", authenticate, updateUserProfile);
 router.get("/:id", authenticate, authorize("System Admin"), getUserById);
