@@ -17,7 +17,7 @@ mongoose
 
 app.use(express.json());
 app.use("/api/v1/users", require("./routes/users"));
-app.use("/api/v1", require("./routes/auth"));
+app.use("/api/v1", require("./routes/auth")); 
 app.use("/api/v1/events", require("./routes/events"));
 app.use("/api/v1/bookings", require("./routes/bookings"));
 
