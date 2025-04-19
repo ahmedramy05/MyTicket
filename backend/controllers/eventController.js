@@ -4,7 +4,15 @@ const Booking = require("../Models/Booking"); // Added for potential future book
 // Create Event (Organizer-Only)
 const createEvent = async (req, res) => {
   try {
-    const { title, description, date, location, category, ticketPrice, totalTickets } = req.body;
+    const {
+      title,
+      description,
+      date,
+      location,
+      category,
+      ticketPrice,
+      totalTickets,
+    } = req.body;
 
     // Validate required fields
     if (!title || !date || !location || !ticketPrice || !totalTickets) {
@@ -90,30 +98,6 @@ const getAllEvents = async (req, res) => {
   }
 };
 
-// Get Organizer's Analytics (Organizer-Only)
-const getOrganizerAnalytics = async (req, res) => {
-  try {
-    const events = await Event.find({ Organizer: req.user.id });
-    
-    const analytics = events.map(event => {
-      const ticketsSold = event.totalTickets - event.availableTickets;
-      const percentageBooked = (ticketsSold / event.totalTickets * 100).toFixed(2);
-      
-      return {
-        eventId: event._id,
-        title: event.title,
-        percentageBooked: `${percentageBooked}%`,
-        ticketsSold,
-        totalTickets: event.totalTickets
-      };
-    });
-
-    res.json(analytics);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-};
-
 // Update Event Details (Organizer-Only)
 const updateEvent = async (req, res) => {
   try {
@@ -124,13 +108,16 @@ const updateEvent = async (req, res) => {
     const event = await Event.findById(eventId);
     if (!event) return res.status(404).json({ error: "Event not found." });
 
-  // Check if user is authorized to update
-const isAdmin = req.user.role === "System Admin";
-const isOrganizer = event.Organizer.toString() === req.user.id;
+    // Check if user is authorized to update
+    const isAdmin = req.user.role === "System Admin";
+    const isOrganizer = event.Organizer.toString() === req.user.id;
 
-if (!isAdmin && !isOrganizer) {
-  return res.status(403).json({ error: "Unauthorized. Only organizers and administrators can update events." });
-}
+    if (!isAdmin && !isOrganizer) {
+      return res.status(403).json({
+        error:
+          "Unauthorized. Only organizers and administrators can update events.",
+      });
+    }
 
     // Update only the allowed fields (tickets, date, location)
     const updates = {};
@@ -142,19 +129,19 @@ if (!isAdmin && !isOrganizer) {
 
       // Check if new total is valid
       if (updates.availableTickets < 0) {
-        return res.status(400).json({ error: "Cannot reduce tickets below number already sold." });
+        return res
+          .status(400)
+          .json({ error: "Cannot reduce tickets below number already sold." });
       }
     }
-    
+
     if (date) updates.date = date;
     if (location) updates.location = location;
 
     // Apply updates
-    const updatedEvent = await Event.findByIdAndUpdate(
-      eventId,
-      updates,
-      { new: true }
-    );
+    const updatedEvent = await Event.findByIdAndUpdate(eventId, updates, {
+      new: true,
+    });
 
     res.json(updatedEvent);
   } catch (err) {
@@ -201,9 +188,8 @@ module.exports = {
   updateEventStatus,
   deleteEvent,
   getAllEvents,
-  getAllEventsAdmin, // Add this new function
-  getOrganizerAnalytics,
+  getAllEventsAdmin,
   updateEvent,
   getEventById,
-  getOrganizerEvents
+  getOrganizerEvents,
 };

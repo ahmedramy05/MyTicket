@@ -1,24 +1,26 @@
-const express = require('express');
+const express = require("express");
 const {
-  getBookings,
-  getBooking,
   createBooking,
-  cancelBooking
-} = require('../controllers/bookingController');
-const { protect, authorize } = require('../middleware/auth');
+  cancelBooking,
+  getBooking,
+} = require("../controllers/bookingController");
+const authenticate = require("../middleware/authentication");
 
 const router = express.Router();
 
-router.use(protect);
+// @desc    Create a booking
+// @route   POST /api/v1/bookings
+// @access  Private (User)
+router.post("/", authenticate, createBooking); // Create booking (user)
 
-router
-  .route('/')
-  .get(authorize('user'), getBookings)
-  .post(authorize('user'), createBooking);
+// @desc    Cancel a booking
+// @route   DELETE /api/v1/bookings/:id
+// @access  Private (User)
+router.delete("/:id", authenticate, cancelBooking); // Cancel booking (user)
 
-router
-  .route('/:id')
-  .get(authorize('user'), getBooking)
-  .delete(authorize('user'), cancelBooking);
+// @desc    Get booking details
+// @route   GET /api/v1/bookings/:id
+// @access  Private (User)
+router.get("/:id", authenticate, getBooking); // Get booking details (user)
 
-module.exports = router; 
+module.exports = router;

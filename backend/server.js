@@ -1,6 +1,7 @@
+require("dotenv").config();
+
 const express = require("express");
 const mongoose = require("mongoose");
-const Booking = require("./Models/Booking");
 const app = express();
 
 const port = 3001;
@@ -15,9 +16,10 @@ mongoose
   .catch((err) => console.error("Could not connect to MongoDB", err));
 
 app.use(express.json());
-app.use("/api/v1/auth", require("./routes/authRoutes"));
-app.use("/api/v1/events", require("./routes/eventRoutes"));
-app.use("/api/v1/bookings", require("./routes/bookingRoutes"));
+app.use("/api/v1/users", require("./routes/users"));
+app.use("/api/v1", require("./routes/auth"));
+app.use("/api/v1/events", require("./routes/events"));
+app.use("/api/v1/bookings", require("./routes/bookings"));
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
