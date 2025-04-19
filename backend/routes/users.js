@@ -1,73 +1,53 @@
 const express = require("express");
 const router = express.Router();
-const {
-  registerUser,
-  loginUser,
+const{
+  getAllUsers,
+  getUserProfile,
   updateUserProfile,
-} = require("../controllers/userController");
-const authenticate = require("../middleware/authentication");
-const { authorize } = require("../middleware/authorization");
+  getUserById,
+  updateUserRole,
+  deleteUser,
+  getUserBookings,
+  getUserEvents,
+  getUserAnalytics
+}
+= require("../controllers/userController");
+const authenticate = require("../middleware/authentication"); // Fix import path
+const { authorizeRoles } = require("../middleware/authorization"); // Fix import path
 
-// Routes
-
-// Public routes
-router.post("/register", registerUser); // Register a new user
-router.post("/login", loginUser); // Login a user
-
-// Authenticated user routes
-router.get("/profile", authenticate, updateUserProfile); // Get current user's profile
-router.put("/profile", authenticate, updateUserProfile); // Update current user's profile
-
-// Admin routes
-router.get(
-  "/",
-  authenticate,
-  authorize("System Admin"),
-  async (req, res) => {}
-); // Get a list of all users
-
-router.get(
-  "/:id",
-  authenticate,
-  authorize("System Admin"),
-  async (req, res) => {}
-); // Get details of a single user
-
+router.get("/", authenticate, authorizeRoles("System Admin"), getAllUsers); 
+router.get("/profile", authenticate, getUserProfile);
+router.put("/profile", authenticate, updateUserProfile);
+router.get("/:id", authenticate, authorizeRoles("System Admin"), getUserById);
 router.put(
   "/:id",
   authenticate,
-  authorize("System Admin"),
-  async (req, res) => {}
-); // Update user's role
-
+  authorizeRoles("System Admin"),
+  updateUserRole
+); // Update user role (admin)
 router.delete(
   "/:id",
   authenticate,
-  authorize("System Admin"),
-  async (req, res) => {}
-); // Delete a user
-
-// Standard User routes
+  authorizeRoles("System Admin"),
+  deleteUser
+); // Delete user (admin)
 router.get(
-  "/bookings",
+  "/:id/bookings",
   authenticate,
-  authorize("Standard User"),
-  async (req, res) => {}
-); // Get current user's bookings
-
-// Event Organizer routes
+  authorizeRoles("System Admin"),
+  getUserBookings
+); // Get user bookings (admin)
 router.get(
-  "/events",
+  "/:id/events",
   authenticate,
-  authorize("Organizer"),
-  async (req, res) => {}
-); // Get current user's events
-
+  authorizeRoles("System Admin"),
+  getUserEvents
+); // Get user events (admin)
 router.get(
-  "/events/analytics",
+  "/:id/analytics",
   authenticate,
-  authorize("Organizer"),
-  async (req, res) => {}
-); // Get analytics of current user's events
+  authorizeRoles("System Admin"),
+  getUserAnalytics
+); // Get user analytics (admin)
 
 module.exports = router;

@@ -98,33 +98,6 @@ const getAllEvents = async (req, res) => {
   }
 };
 
-// Get Organizer's Analytics (Organizer-Only)
-const getOrganizerAnalytics = async (req, res) => {
-  try {
-    const events = await Event.find({ Organizer: req.user.id });
-
-    const analytics = events.map((event) => {
-      const ticketsSold = event.totalTickets - event.availableTickets;
-      const percentageBooked = (
-        (ticketsSold / event.totalTickets) *
-        100
-      ).toFixed(2);
-
-      return {
-        eventId: event._id,
-        title: event.title,
-        percentageBooked: `${percentageBooked}%`,
-        ticketsSold,
-        totalTickets: event.totalTickets,
-      };
-    });
-
-    res.json(analytics);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-};
-
 // Update Event Details (Organizer-Only)
 const updateEvent = async (req, res) => {
   try {
