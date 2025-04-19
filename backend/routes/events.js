@@ -25,12 +25,14 @@ router.put(
   authorizeRoles("Organizer", "System Admin"),
   updateEvent
 );
+
 router.delete(
   "/:id",
   authenticate,
   authorizeRoles("Organizer", "System Admin"),
   deleteEvent
 ); // Delete event (organizer/admin)
+
 router.put(
   "/:id/status",
   authenticate,
@@ -45,6 +47,7 @@ router.get(
   authorizeRoles("Organizer"),
   getOrganizerEvents
 ); // Get organizer's events
+
 router.get(
   "/user/events/analytics",
   authenticate,
