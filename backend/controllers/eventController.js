@@ -67,7 +67,10 @@ const deleteEvent = async (req, res) => {
 
     // Improved role checking with readable variables
     const isAdmin = req.user.role === "System Admin";
-    const isOrganizer = event.Organizer.toString() === req.user.id;
+    
+    // Handle both lowercase and uppercase field names
+    const organizerId = event.Organizer || event.organizer;
+    const isOrganizer = organizerId ? organizerId.toString() === req.user.id : false;
 
     if (!isAdmin && !isOrganizer) {
       return res.status(403).json({ error: "Unauthorized." });
@@ -101,7 +104,6 @@ const getAllEvents = async (req, res) => {
 // Update Event Details (Organizer-Only)
 const updateEvent = async (req, res) => {
   try {
-    const { totalTickets, date, location } = req.body;
     const eventId = req.params.id;
 
     // Find the event
@@ -110,33 +112,43 @@ const updateEvent = async (req, res) => {
 
     // Check if user is authorized to update
     const isAdmin = req.user.role === "System Admin";
-    const isOrganizer = event.Organizer.toString() === req.user.id;
+    
+    // Handle both lowercase and uppercase field names
+    const organizerId = event.Organizer || event.organizer;
+    const isOrganizer = organizerId ? organizerId.toString() === req.user.id : false;
 
     if (!isAdmin && !isOrganizer) {
       return res.status(403).json({
-        error:
-          "Unauthorized. Only organizers and administrators can update events.",
+        error: "Unauthorized. Only organizers and administrators can update events.",
       });
     }
 
-    // Update only the allowed fields (tickets, date, location)
+    // Allow updating more fields
     const updates = {};
-    if (totalTickets) {
-      updates.totalTickets = totalTickets;
+    const allowedFields = ['title', 'description', 'date', 'location', 'category', 
+                          'ticketPrice', 'totalTickets', 'image'];
+    
+    // Update any fields that were provided in the request
+    allowedFields.forEach(field => {
+      if (req.body[field] !== undefined) {
+        updates[field] = req.body[field];
+      }
+    });
+
+    // Special handling for totalTickets
+    if (updates.totalTickets) {
       // Adjust availableTickets based on how many are already sold
-      const ticketsSold = event.totalTickets - event.availableTickets;
-      updates.availableTickets = totalTickets - ticketsSold;
+      const availableField = event.availableTickets ? 'availableTickets' : 'remainingTickets';
+      const ticketsSold = event.totalTickets - event[availableField];
+      updates[availableField] = updates.totalTickets - ticketsSold;
 
       // Check if new total is valid
-      if (updates.availableTickets < 0) {
-        return res
-          .status(400)
-          .json({ error: "Cannot reduce tickets below number already sold." });
+      if (updates[availableField] < 0) {
+        return res.status(400).json({ 
+          error: "Cannot reduce tickets below number already sold." 
+        });
       }
     }
-
-    if (date) updates.date = date;
-    if (location) updates.location = location;
 
     // Apply updates
     const updatedEvent = await Event.findByIdAndUpdate(eventId, updates, {

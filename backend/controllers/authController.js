@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const User = require("../Models/User");
 const crypto = require("crypto");
 
+
 // @desc    Register new user
 // @route   POST /auth/register
 // @access  Public
