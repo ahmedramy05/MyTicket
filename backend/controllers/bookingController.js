@@ -1,7 +1,7 @@
 const Booking = require("../Models/Booking");
 const Event = require("../Models/Event");
 
-exports.createBooking = async (req, res, next) => {
+const createBooking = async (req, res, next) => {
   try {
     const { eventId, tickets } = req.body;
 
@@ -58,7 +58,7 @@ exports.createBooking = async (req, res, next) => {
 // @desc    Cancel booking
 // @route   DELETE /api/v1/bookings/:id
 // @access  Private (User)
-exports.cancelBooking = async (req, res, next) => {
+const cancelBooking = async (req, res, next) => {
   try {
     const booking = await Booking.findOne({
       _id: req.params.id,
@@ -91,4 +91,39 @@ exports.cancelBooking = async (req, res, next) => {
   } catch (err) {
     next(err);
   }
+};
+
+// @desc    Get a specific booking
+// @route   GET /api/v1/bookings/:id
+// @access  Private (User)
+const getBooking = async (req, res, next) => {
+  try {
+    // Find booking by ID and verify it belongs to the current user
+    const booking = await Booking.findOne({
+      _id: req.params.id,
+      user: req.user.id,
+    }).populate({
+      path: "event",
+      select: "title date location ticketPrice status",
+    });
+
+    if (!booking) {
+      return next(
+        new ErrorResponse(`Booking not found with id of ${req.params.id}`, 404)
+      );
+    }
+
+    res.status(200).json({
+      success: true,
+      data: booking,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = {
+  createBooking,
+  cancelBooking,
+  getBooking,
 };

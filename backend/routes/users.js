@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const{
+const {
   getAllUsers,
   getUserProfile,
   updateUserProfile,
@@ -9,44 +9,34 @@ const{
   deleteUser,
   getUserBookings,
   getUserEvents,
-  getUserAnalytics
-}
-= require("../controllers/userController");
-const authenticate = require("../middleware/authentication"); // Fix import path
-const { authorizeRoles } = require("../middleware/authorization"); // Fix import path
+  getUserAnalytics,
+} = require("../controllers/userController");
 
-router.get("/", authenticate, authorizeRoles("System Admin"), getAllUsers); 
+const authenticate = require("../middleware/authentication"); // Fix import path
+const { authorize } = require("../middleware/authorization"); // Fix import path
+
+router.get("/", authenticate, authorize("System Admin"), getAllUsers);
 router.get("/profile", authenticate, getUserProfile);
 router.put("/profile", authenticate, updateUserProfile);
-router.get("/:id", authenticate, authorizeRoles("System Admin"), getUserById);
-router.put(
-  "/:id",
-  authenticate,
-  authorizeRoles("System Admin"),
-  updateUserRole
-); // Update user role (admin)
-router.delete(
-  "/:id",
-  authenticate,
-  authorizeRoles("System Admin"),
-  deleteUser
-); // Delete user (admin)
+router.get("/:id", authenticate, authorize("System Admin"), getUserById);
+router.put("/:id", authenticate, authorize("System Admin"), updateUserRole); // Update user role (admin)
+router.delete("/:id", authenticate, authorize("System Admin"), deleteUser); // Delete user (admin)
 router.get(
   "/:id/bookings",
   authenticate,
-  authorizeRoles("System Admin"),
+  authorize("System Admin"),
   getUserBookings
 ); // Get user bookings (admin)
 router.get(
   "/:id/events",
   authenticate,
-  authorizeRoles("System Admin"),
+  authorize("System Admin"),
   getUserEvents
 ); // Get user events (admin)
 router.get(
   "/:id/analytics",
   authenticate,
-  authorizeRoles("System Admin"),
+  authorize("System Admin"),
   getUserAnalytics
 ); // Get user analytics (admin)
 

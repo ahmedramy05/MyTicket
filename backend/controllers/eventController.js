@@ -188,8 +188,7 @@ module.exports = {
   updateEventStatus,
   deleteEvent,
   getAllEvents,
-  getAllEventsAdmin, // Add this new function
-  getOrganizerAnalytics,
+  getAllEventsAdmin,
   updateEvent,
   getEventById,
   getOrganizerEvents,
