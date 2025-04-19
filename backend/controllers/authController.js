@@ -1,10 +1,8 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const User = require("../Models/User");
+const User = require("../models/User");
 const BlacklistedToken = require("../models/BlacklistedToken");
 const crypto = require("crypto");
-const nodemailer = require("nodemailer");
-const transporter = require("../utils/emailService");
 
 // @desc    Register new user
 // @route   POST /auth/register
