@@ -1,10 +1,12 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const cors = require("cors");
+require("dotenv").config();
 const app = express();
 
 const port = 3001;
+app.use(cors());
 
-// Replace with your MongoDB Atlas connection string
 const mongoURI =
   "mongodb+srv://Thabet:MONGOMONGO@cluster0.2wax2.mongodb.net/MyTicket?retryWrites=true&w=majority";
 
@@ -15,7 +17,7 @@ mongoose
 
 app.use(express.json());
 app.use("/api/v1/users", require("./routes/users"));
-app.use("/api/v1/auth", require("./routes/auth"));
+app.use("/api/v1", require("./routes/auth"));
 app.use("/api/v1/events", require("./routes/events"));
 app.use("/api/v1/bookings", require("./routes/bookings"));
 
@@ -24,5 +26,5 @@ app.listen(port, () => {
 });
 
 app.get("/", (req, res) => {
-  res.send("Hello World");
+  res.send("bruh");
 });
