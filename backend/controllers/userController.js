@@ -305,3 +305,15 @@ exports.getUserAnalytics = async (req, res) => {
     });
   }
 };
+
+module.exports = {
+  getAllUsers,
+  getUserProfile,
+  updateUserProfile,
+  getUserById,
+  updateUserRole,
+  deleteUser,
+  getUserBookings,
+  getUserEvents,
+  getUserAnalytics
+};

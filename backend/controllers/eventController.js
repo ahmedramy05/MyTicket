@@ -1,4 +1,4 @@
-const Event = require("../models/Event"); // Updated import path
+const Event = require("../Models/Event"); // Updated import path
 const Booking = require("../models/Booking"); // Added for potential future booking integrations
 
 // Create Event (Organizer-Only)
@@ -93,33 +93,6 @@ const getAllEvents = async (req, res) => {
 
     const events = await Event.find(filters);
     res.json(events);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-};
-
-// Get Organizer's Analytics (Organizer-Only)
-const getOrganizerAnalytics = async (req, res) => {
-  try {
-    const events = await Event.find({ Organizer: req.user.id });
-
-    const analytics = events.map((event) => {
-      const ticketsSold = event.totalTickets - event.availableTickets;
-      const percentageBooked = (
-        (ticketsSold / event.totalTickets) *
-        100
-      ).toFixed(2);
-
-      return {
-        eventId: event._id,
-        title: event.title,
-        percentageBooked: `${percentageBooked}%`,
-        ticketsSold,
-        totalTickets: event.totalTickets,
-      };
-    });
-
-    res.json(analytics);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

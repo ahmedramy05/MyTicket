@@ -18,7 +18,7 @@ router.get("/", getAllEvents); // Get all events (public)
 router.get("/:id", getEventById); // Get single event (public)
 
 // Protected routes
-router.post("/", authenticate, authorizeRoles("Organizer"), createEvent); // Create event (organizer)
+router.post("/", authenticate, authorizeRoles("Organizer"), createEvent); // Create event (organizer) #path, authentication,authorization, function name
 router.put(
   "/:id",
   authenticate,
@@ -48,12 +48,6 @@ router.get(
   getOrganizerEvents
 ); // Get organizer's events
 
-router.get(
-  "/user/events/analytics",
-  authenticate,
-  authorizeRoles("Organizer"),
-  getOrganizerAnalytics
-); // Get analytics
 
 // Admin routes
 router.get(
