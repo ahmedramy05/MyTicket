@@ -27,4 +27,7 @@ router.put("/:id/status", authenticate, authorizeRoles("System Admin"), updateEv
 router.get("/user/events", authenticate, authorizeRoles("Organizer"), getOrganizerEvents); // Get organizer's events
 router.get("/user/events/analytics", authenticate, authorizeRoles("Organizer"), getOrganizerAnalytics); // Get analytics
 
+// Admin routes
+router.get("/all", authenticate, authorizeRoles("System Admin"), getAllEventsAdmin); // Get all events (admin)
+
 module.exports = router;
