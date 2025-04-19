@@ -1,5 +1,5 @@
 const Event = require("../Models/Event"); // Updated import path
-const Booking = require("../models/Booking"); // Added for potential future booking integrations
+const Booking = require("../Models/Booking"); // Added for potential future booking integrations
 
 // Create Event (Organizer-Only)
 const createEvent = async (req, res) => {
@@ -113,12 +113,10 @@ const updateEvent = async (req, res) => {
     const isOrganizer = event.Organizer.toString() === req.user.id;
 
     if (!isAdmin && !isOrganizer) {
-      return res
-        .status(403)
-        .json({
-          error:
-            "Unauthorized. Only organizers and administrators can update events.",
-        });
+      return res.status(403).json({
+        error:
+          "Unauthorized. Only organizers and administrators can update events.",
+      });
     }
 
     // Update only the allowed fields (tickets, date, location)

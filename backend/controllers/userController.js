@@ -1,7 +1,7 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("../Models/User");
-const Booking = require("../models/Booking");
+const Booking = require("../Models/Booking");
 const Event = require("../Models/Event");
 
 exports.getAllUsers = async (req, res) => {
@@ -307,9 +307,6 @@ exports.getUserAnalytics = async (req, res) => {
 };
 
 module.exports = {
-  getAllUsers,
-  getUserProfile,
-  updateUserProfile,
   getUserById,
   updateUserRole,
   deleteUser,
