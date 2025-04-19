@@ -21,4 +21,4 @@ router
   .get(authorize('user'), getBooking)
   .delete(authorize('user'), cancelBooking);
 
-module.exports = router;
+module.exports = router; 

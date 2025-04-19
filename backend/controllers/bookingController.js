@@ -1,5 +1,5 @@
-const Booking = require('../models/Booking');
-const Event = require('../models/Event');
+const Booking = require('../Models/Booking');
+const Event = require('../Models/Event');
 
 const ErrorResponse = require('../utils/errorResponse');
 const asyncHandler = require('../middleware/asyncHandler');
