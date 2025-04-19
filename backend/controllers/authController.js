@@ -1,8 +1,3 @@
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const User = require("../models/User");
-const BlacklistedToken = require("../models/BlacklistedToken");
-const crypto = require("crypto");
 
 // @desc    Register new user
 // @route   POST /auth/register
