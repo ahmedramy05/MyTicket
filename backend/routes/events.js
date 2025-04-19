@@ -10,15 +10,29 @@ const {
   getAllEventsAdmin,
   updateEventStatus,
 } = require("../controllers/eventController");
-const authenticate = require("../middleware/authentication"); // Fix import path
-const { authorize } = require("../middleware/authorization"); // Fix import path
+const authenticate = require("../middleware/authentication");
+const { authorize } = require("../middleware/authorization");
 
 // Public routes
 router.get("/", getAllEvents); // Get all events (public)
+
+// Admin routes - MOVED UP before /:id
+router.get("/all", authenticate, authorize("System Admin"), getAllEventsAdmin);
+
+// Organizer-specific routes - MOVED UP before /:id
+router.get(
+  "/user/events",
+  authenticate,
+  authorize("Organizer"),
+  getOrganizerEvents
+);
+
+// This wildcard route must come AFTER any specific routes
 router.get("/:id", getEventById); // Get single event (public)
 
 // Protected routes
-router.post("/", authenticate, authorize("Organizer"), createEvent); // Create event (organizer) #path, authentication,authorization, function name
+router.post("/", authenticate, authorize("Organizer"), createEvent);
+
 router.put(
   "/:id",
   authenticate,
@@ -31,24 +45,13 @@ router.delete(
   authenticate,
   authorize("Organizer", "System Admin"),
   deleteEvent
-); // Delete event (organizer/admin)
+);
 
 router.put(
   "/:id/status",
   authenticate,
   authorize("System Admin"),
   updateEventStatus
-); // Update event status (admin)
-
-// Organizer-specific routes
-router.get(
-  "/user/events",
-  authenticate,
-  authorize("Organizer"),
-  getOrganizerEvents
-); // Get organizer's events
-
-// Admin routes
-router.get("/all", authenticate, authorize("System Admin"), getAllEventsAdmin); // Get all events (admin)
+);
 
 module.exports = router;
