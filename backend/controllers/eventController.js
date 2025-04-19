@@ -184,11 +184,24 @@ const getOrganizerEvents = async (req, res) => {
   }
 };
 
+// Add to eventController.js
+const getAllEventsAdmin = async (req, res) => {
+  try {
+    // No status filter - returns all events regardless of status
+    const events = await Event.find({});
+    res.json(events);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Add to module.exports
 module.exports = {
   createEvent,
   updateEventStatus,
   deleteEvent,
   getAllEvents,
+  getAllEventsAdmin, // Add this new function
   getOrganizerAnalytics,
   updateEvent,
   getEventById,
