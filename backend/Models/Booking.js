@@ -31,7 +31,7 @@ const bookingSchema = new Schema(
       default: Date.now,
     },
   },
-  { collection: "Bookings" }
+  { collection: "bookings" }
 );
 const Booking = mongoose.model("Booking", bookingSchema);
 module.exports = Booking;
