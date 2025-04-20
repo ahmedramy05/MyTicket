@@ -1,6 +1,6 @@
 const Booking = require("../Models/Booking");
 const Event = require("../Models/Event");
-const ErrorResponse = require("../../utils/errorResponse");
+const ErrorResponse = require("../../utils/ErrorResponse");
 const createBooking = async (req, res, next) => {
   try {
     const { eventId, tickets } = req.body;
@@ -62,7 +62,7 @@ const cancelBooking = async (req, res, next) => {
   try {
     const booking = await Booking.findOne({
       _id: req.params.id,
-      user: req.user.id,
+      userId: req.user.id,
     });
 
     if (!booking) {
@@ -76,8 +76,8 @@ const cancelBooking = async (req, res, next) => {
     }
 
     // Get event and update available tickets
-    const event = await Event.findById(booking.event);
-    event.availableTickets += booking.tickets;
+    const event = await Event.findById(booking.eventId);
+    event.availableTickets += booking.numberOfTickets;
     await event.save();
 
     // Update booking status
@@ -101,9 +101,9 @@ const getBooking = async (req, res, next) => {
     // Find booking by ID and verify it belongs to the current user
     const booking = await Booking.findOne({
       _id: req.params.id,
-      user: req.user.id,
+      userId: req.user.id,
     }).populate({
-      path: "event",
+      path: "eventId",  // Use the correct field name from the schema
       select: "title date location ticketPrice status",
     });
 
