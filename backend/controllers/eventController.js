@@ -67,10 +67,7 @@ const deleteEvent = async (req, res) => {
 
     // Improved role checking with readable variables
     const isAdmin = req.user.role === "System Admin";
-    
-    // Handle both lowercase and uppercase field names
-    const organizerId = event.Organizer || event.organizer;
-    const isOrganizer = organizerId ? organizerId.toString() === req.user.id : false;
+    const isOrganizer = event.Organizer.toString() === req.user.id;
 
     if (!isAdmin && !isOrganizer) {
       return res.status(403).json({ error: "Unauthorized." });
@@ -101,9 +98,37 @@ const getAllEvents = async (req, res) => {
   }
 };
 
+// Get Organizer's Analytics (Organizer-Only)
+const getOrganizerAnalytics = async (req, res) => {
+  try {
+    const events = await Event.find({ Organizer: req.user.id });
+
+    const analytics = events.map((event) => {
+      const ticketsSold = event.totalTickets - event.availableTickets;
+      const percentageBooked = (
+        (ticketsSold / event.totalTickets) *
+        100
+      ).toFixed(2);
+
+      return {
+        eventId: event._id,
+        title: event.title,
+        percentageBooked: `${percentageBooked}%`,
+        ticketsSold,
+        totalTickets: event.totalTickets,
+      };
+    });
+
+    res.json(analytics);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};
+
 // Update Event Details (Organizer-Only)
 const updateEvent = async (req, res) => {
   try {
+    const { totalTickets, date, location } = req.body;
     const eventId = req.params.id;
 
     // Find the event
@@ -112,43 +137,35 @@ const updateEvent = async (req, res) => {
 
     // Check if user is authorized to update
     const isAdmin = req.user.role === "System Admin";
-    
-    // Handle both lowercase and uppercase field names
-    const organizerId = event.Organizer || event.organizer;
-    const isOrganizer = organizerId ? organizerId.toString() === req.user.id : false;
+    const isOrganizer = event.Organizer.toString() === req.user.id;
 
     if (!isAdmin && !isOrganizer) {
-      return res.status(403).json({
-        error: "Unauthorized. Only organizers and administrators can update events.",
-      });
+      return res
+        .status(403)
+        .json({
+          error:
+            "Unauthorized. Only organizers and administrators can update events.",
+        });
     }
 
-    // Allow updating more fields
+    // Update only the allowed fields (tickets, date, location)
     const updates = {};
-    const allowedFields = ['title', 'description', 'date', 'location', 'category', 
-                          'ticketPrice', 'totalTickets', 'image'];
-    
-    // Update any fields that were provided in the request
-    allowedFields.forEach(field => {
-      if (req.body[field] !== undefined) {
-        updates[field] = req.body[field];
-      }
-    });
-
-    // Special handling for totalTickets
-    if (updates.totalTickets) {
+    if (totalTickets) {
+      updates.totalTickets = totalTickets;
       // Adjust availableTickets based on how many are already sold
-      const availableField = event.availableTickets ? 'availableTickets' : 'remainingTickets';
-      const ticketsSold = event.totalTickets - event[availableField];
-      updates[availableField] = updates.totalTickets - ticketsSold;
+      const ticketsSold = event.totalTickets - event.availableTickets;
+      updates.availableTickets = totalTickets - ticketsSold;
 
       // Check if new total is valid
-      if (updates[availableField] < 0) {
-        return res.status(400).json({ 
-          error: "Cannot reduce tickets below number already sold." 
-        });
+      if (updates.availableTickets < 0) {
+        return res
+          .status(400)
+          .json({ error: "Cannot reduce tickets below number already sold." });
       }
     }
+
+    if (date) updates.date = date;
+    if (location) updates.location = location;
 
     // Apply updates
     const updatedEvent = await Event.findByIdAndUpdate(eventId, updates, {
@@ -200,7 +217,8 @@ module.exports = {
   updateEventStatus,
   deleteEvent,
   getAllEvents,
-  getAllEventsAdmin,
+  getAllEventsAdmin, // Add this new function
+  getOrganizerAnalytics,
   updateEvent,
   getEventById,
   getOrganizerEvents,
