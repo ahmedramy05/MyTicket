@@ -140,7 +140,7 @@ const updateUserRole = async (req, res) => {
     }
 
     // Get allowed roles - this should match your User model roles
-    const allowedRoles = ["Admin", "User", "EventOrganizer"];
+const allowedRoles = ["Standard User", "Organizer", "System Admin"];
 
     // Validate that the provided role is allowed
     if (!allowedRoles.includes(req.body.role)) {
@@ -205,7 +205,9 @@ const deleteUser = async (req, res) => {
       });
     }
 
-    await user.remove();
+    // Replace user.remove() with user.deleteOne()
+    await user.deleteOne();
+    // Alternatively, you could use: await User.findByIdAndDelete(req.params.id);
 
     res.status(200).json({
       success: true,
@@ -231,9 +233,9 @@ const deleteUser = async (req, res) => {
 
 const getUserBookings = async (req, res) => {
   try {
-    // Find all bookings for the current user
-    const bookings = await Booking.find({ user: req.user.id })
-      .populate("event", "name date location price")
+    // Find all bookings for the current user using the correct field name
+    const bookings = await Booking.find({ userId: req.user.id })
+      .populate("eventId", "title date location ticketPrice") // Use correct field names
       .sort({ createdAt: -1 });
 
     res.status(200).json({
@@ -252,10 +254,14 @@ const getUserBookings = async (req, res) => {
 
 const getUserEvents = async (req, res) => {
   try {
+    // Add debugging log
+    console.log("User ID from token:", req.user.id);
+    console.log("User role:", req.user.role);
+
     // Find all events where the current user is the organizer
     const events = await Event.find({ Organizer: req.user.id }).sort({
       date: 1,
-    }); // Sort by upcoming events first
+    });
 
     res.status(200).json({
       success: true,
@@ -264,9 +270,18 @@ const getUserEvents = async (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching user events:", error);
+    
+    // Add specific error handling for ObjectId errors
+    if (error.kind === "ObjectId") {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid user ID format in request"
+      });
+    }
+    
     res.status(500).json({
       success: false,
-      message: "Server error while fetching user events",
+      message: "Server error while fetching user events"
     });
   }
 };
