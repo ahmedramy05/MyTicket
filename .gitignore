@@ -27,3 +27,5 @@ Thumbs.db
 
 # MongoDB Playground files
 *.mongodb
+
+*.pdf

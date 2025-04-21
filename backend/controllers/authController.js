@@ -5,7 +5,7 @@ const User = require("../Models/User");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 // Fix this path to point to the correct location
-const transporter = require("../../utils/EmailService");
+const transporter = require("../utils/EmailService");
 
 // @desc    Register new user
 // @route   POST /auth/register
@@ -149,13 +149,17 @@ exports.logout = async (req, res) => {
     });
   }
 };
-
-exports.forgotPassword = async (req, res) => {
+exports.forgetPassword = async (req, res) => {
   try {
     const { email } = req.body;
+    console.log("Looking for email:", email);
 
-    // Check if user exists
-    const user = await User.findOne({ email });
+    // Case-insensitive search
+    const user = await User.findOne({
+      email: { $regex: new RegExp("^" + email + "$", "i") },
+    });
+
+    console.log("User found:", !!user);
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -163,30 +167,70 @@ exports.forgotPassword = async (req, res) => {
       });
     }
 
-    // Generate OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
+    // Generate reset token (random bytes)
+    const resetToken = crypto.randomBytes(20).toString("hex");
 
-    // Hash the OTP and save it in the database with an expiration time
-    user.resetPasswordToken = crypto.createHash("sha256").update(otp).digest("hex");
-    user.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
-    await user.save();
+    // Hash the token and set to resetPasswordToken field
+    user.resetPasswordToken = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
 
-    const mailOptions = {
-      from: '"MyTicket Support" <support@myticket.com>',
+    // Set token expire time (10 minutes)
+    user.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
+
+    // Create reset URL - DEFINE THIS BEFORE USING IT
+    const resetUrl = `http://localhost:3001/api/v1/resetPassword/${resetToken}`;
+
+    // Create email message
+    const message = {
+      from: '"EventHub" <noreply@eventhub.com>',
       to: user.email,
-      subject: "Password Reset OTP",
-      text: `Your OTP for password reset is: ${otp}. It is valid for 10 minutes.`,
+      subject: "Password Reset Request",
+      html: `
+        <h1>You requested a password reset</h1>
+        <p>Please click on the link below to reset your password:</p>
+        <a href="${resetUrl}">${resetUrl}</a>
+      `,
     };
 
-    await transporter.sendMail(mailOptions);
+    // Save the user with the reset token information
+    await user.save();
 
-    res.status(200).json({
-      success: true,
-      message: "OTP sent to your email",
-    });
+    try {
+      // Try to send email
+      await transporter.sendMail(message);
+
+      // For development purposes, return the token and URL
+      return res.status(200).json({
+        success: true,
+        message: "Password reset email sent",
+        // Only in development:
+        resetToken,
+        resetUrl,
+      });
+    } catch (emailError) {
+      console.error("Email sending failed:", emailError);
+
+      // Even if email fails, still return the token for testing
+      return res.status(200).json({
+        success: true,
+        message: "Email sending failed, but here's your reset token",
+        resetToken,
+        resetUrl,
+      });
+    }
   } catch (error) {
     console.error("Forgot password error:", error);
-    res.status(500).json({
+
+    // If there's an error, remove reset token fields
+    if (user) {
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpire = undefined;
+      await user.save();
+    }
+
+    return res.status(500).json({
       success: false,
       message: "Server error during password reset request",
     });
@@ -227,55 +271,6 @@ exports.resetPassword = async (req, res) => {
     await user.save();
 
     // Return success
-    res.status(200).json({
-      success: true,
-      message: "Password successfully reset",
-    });
-  } catch (error) {
-    console.error("Reset password error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Server error during password reset",
-    });
-  }
-};
-
-exports.resetPassword = async (req, res) => {
-  try {
-    const { email, otp, newPassword } = req.body;
-
-    // Check if user exists
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "No user with that email",
-      });
-    }
-
-    // Hash the provided OTP and compare it with the stored token
-    const hashedOtp = crypto.createHash("sha256").update(otp).digest("hex");
-
-    if (
-      hashedOtp !== user.resetPasswordToken ||
-      user.resetPasswordExpire < Date.now()
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid or expired OTP",
-      });
-    }
-
-    // Reset the password
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(newPassword, salt);
-
-    // Clear the reset token fields
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpire = undefined;
-
-    await user.save();
-
     res.status(200).json({
       success: true,
       message: "Password successfully reset",
