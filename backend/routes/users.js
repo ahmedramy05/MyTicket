@@ -19,15 +19,12 @@ router.get("/", authenticate, authorize("System Admin"), getAllUsers);
 
 router.get("/profile", authenticate, getUserProfile);
 router.put("/profile", authenticate, updateUserProfile);
+router.get("/bookings", authenticate, getUserBookings);
+router.get("/events", authenticate, authorize("Organizer"), getUserEvents);
+router.get("/events/analytics", authenticate, authorize("Organizer"), getUserEvents);
 router.get("/:id", authenticate, authorize("System Admin"), getUserById);
 router.put("/:id", authenticate, authorize("System Admin"), updateUserRole); // Update user role (admin)
 router.delete("/:id", authenticate, authorize("System Admin"), deleteUser); // Delete user (admin)
-router.get(
-  "/:id/bookings",
-  authenticate,
-  authorize("System Admin"),
-  getUserBookings
-); // Get user bookings (admin)
 router.get(
   "/:id/events",
   authenticate,
