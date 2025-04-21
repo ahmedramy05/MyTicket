@@ -1,6 +1,6 @@
 const Booking = require("../Models/Booking");
 const Event = require("../Models/Event");
-const ErrorResponse = require("../../utils/ErrorResponse");
+const ErrorResponse = require("../utils/ErrorResponse");
 const createBooking = async (req, res, next) => {
   try {
     const { eventId, tickets } = req.body;
@@ -48,7 +48,7 @@ const createBooking = async (req, res, next) => {
 
     res.status(201).json({
       success: true,
-      data: booking,  
+      data: booking,
     });
   } catch (err) {
     next(err);
@@ -103,7 +103,7 @@ const getBooking = async (req, res, next) => {
       _id: req.params.id,
       userId: req.user.id,
     }).populate({
-      path: "eventId",  // Use the correct field name from the schema
+      path: "eventId", // Use the correct field name from the schema
       select: "title date location ticketPrice status",
     });
 
