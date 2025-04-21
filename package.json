@@ -29,5 +29,28 @@
   "bugs": {
     "url": "https://github.com/Thabettt/MyTicket/issues"
   },
-  "homepage": "https://github.com/Thabettt/MyTicket#readme"
+  "homepage": "https://github.com/Thabettt/MyTicket#readme",
+  "env": {
+    "MONGO_URI": "mongodb+srv://Thabet:MONGOMONGO@cluster0.2wax2.mongodb.net/MyTicket?retryWrites=true&w=majority"
+  },
+  "server": {
+    "require": [
+      "dotenv/config",
+      "express",
+      "mongoose"
+    ],
+    "port": 3001,
+    "mongoURI": "process.env.MONGO_URI",
+    "routes": [
+      "/api/v1/users",
+      "/api/v1",
+      "/api/v1/events",
+      "/api/v1/bookings"
+    ],
+    "middleware": [
+      "express.json"
+    ],
+    "startMessage": "Server is running on port 3001",
+    "rootMessage": "Hello World"
+  }
 }
