@@ -1,10 +1,11 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const User = require("../models/User");
-const BlacklistedToken = require("../models/BlacklistedToken");
+const User = require("../Models/User");
+//const BlacklistedToken = require("../Models/BlacklistedToken");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
-const transporter = require("../utils/emailService");
+// Fix this path to point to the correct location
+const transporter = require("../../utils/EmailService");
 
 // @desc    Register new user
 // @route   POST /auth/register
@@ -170,15 +171,6 @@ exports.forgotPassword = async (req, res) => {
     user.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
     await user.save();
 
-    // Send OTP via email
-    const transporter = nodemailer.createTransport({
-      service: "Gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
-
     const mailOptions = {
       from: '"MyTicket Support" <support@myticket.com>',
       to: user.email,
@@ -248,7 +240,7 @@ exports.resetPassword = async (req, res) => {
   }
 };
 
-exports.verifyOtpAndResetPassword = async (req, res) => {
+exports.resetPassword = async (req, res) => {
   try {
     const { email, otp, newPassword } = req.body;
 
