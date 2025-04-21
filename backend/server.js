@@ -5,7 +5,6 @@ const app = express();
 
 const port = 3001;
 
-// Replace with your MongoDB Atlas connection string
 const mongoURI =
   "mongodb+srv://Thabet:MONGOMONGO@cluster0.2wax2.mongodb.net/MyTicket?retryWrites=true&w=majority";
 
