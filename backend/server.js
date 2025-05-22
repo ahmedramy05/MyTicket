@@ -13,9 +13,13 @@ mongoose
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.error("Could not connect to MongoDB", err));
 
+// Add this to your server.js BEFORE defining routes
+const cors = require("cors");
+app.use(cors());
+
 app.use(express.json());
 app.use("/api/v1/users", require("./routes/users"));
-app.use("/api/v1", require("./routes/auth")); 
+app.use("/api/v1", require("./routes/auth"));
 app.use("/api/v1/events", require("./routes/events"));
 app.use("/api/v1/bookings", require("./routes/bookings"));
 
@@ -26,4 +30,3 @@ app.listen(port, () => {
 app.get("/", (req, res) => {
   res.send("Hello World");
 });
-
