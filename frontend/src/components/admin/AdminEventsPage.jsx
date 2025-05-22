@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
+
 import {
   Container,
   Typography,
@@ -18,22 +19,22 @@ import {
   Chip,
   TextField,
   InputAdornment,
-  Pagination
-} from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import CancelIcon from '@mui/icons-material/Cancel';
-import { formatDate } from '../../utils/formatDate';
-import api from '../../services/api';
-import ConfirmationDialog from './ConfirmationDialog';
+  Pagination,
+} from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import CancelIcon from "@mui/icons-material/Cancel";
+import { formatDate } from "../../utils/formatDate";
+import api from "../../services/api";
+import ConfirmationDialog from "./ConfirmationDialog";
 
 const AdminEventsPage = () => {
   const [events, setEvents] = useState([]);
   const [filteredEvents, setFilteredEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Pagination
   const [page, setPage] = useState(1);
@@ -48,13 +49,13 @@ const AdminEventsPage = () => {
     const fetchEvents = async () => {
       try {
         setLoading(true);
-        const response = await api.get('/events/all');
+        const response = await api.get("/events/all");
         setEvents(response.data);
         setFilteredEvents(response.data);
         setError(null);
       } catch (err) {
-        console.error('Error fetching events:', err);
-        setError('Failed to load events. Please try again.');
+        console.error("Error fetching events:", err);
+        setError("Failed to load events. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -68,15 +69,16 @@ const AdminEventsPage = () => {
     let filtered = [...events];
 
     // Filter by status
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(event => event.status === statusFilter);
+    if (statusFilter !== "all") {
+      filtered = filtered.filter((event) => event.status === statusFilter);
     }
 
     // Filter by search term
     if (searchTerm) {
-      filtered = filtered.filter(event => 
-        event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        event.location.toLowerCase().includes(searchTerm.toLowerCase())
+      filtered = filtered.filter(
+        (event) =>
+          event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          event.location.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -100,32 +102,39 @@ const AdminEventsPage = () => {
       await api.put(`/events/${eventId}/status`, { status: newStatus });
 
       // Update local state
-      const updatedEvents = events.map(event => 
+      const updatedEvents = events.map((event) =>
         event._id === eventId ? { ...event, status: newStatus } : event
       );
 
       setEvents(updatedEvents);
-      
+
       // Reset action states
       setEventToApprove(null);
       setEventToDecline(null);
     } catch (err) {
-      console.error(`Error ${newStatus === 'approved' ? 'approving' : 'declining'} event:`, err);
-      setError(`Failed to ${newStatus === 'approved' ? 'approve' : 'decline'} event. Please try again.`);
+      console.error(
+        `Error ${newStatus === "approved" ? "approving" : "declining"} event:`,
+        err
+      );
+      setError(
+        `Failed to ${
+          newStatus === "approved" ? "approve" : "decline"
+        } event. Please try again.`
+      );
     }
   };
 
   // Get color for status chip
   const getStatusColor = (status) => {
     switch (status) {
-      case 'approved':
-        return 'success';
-      case 'pending':
-        return 'warning';
-      case 'declined':
-        return 'error';
+      case "approved":
+        return "success";
+      case "pending":
+        return "warning";
+      case "declined":
+        return "error";
       default:
-        return 'default';
+        return "default";
     }
   };
 
@@ -137,7 +146,7 @@ const AdminEventsPage = () => {
 
   if (loading) {
     return (
-      <Container maxWidth="lg" sx={{ textAlign: 'center', py: 8 }}>
+      <Container maxWidth="lg" sx={{ textAlign: "center", py: 8 }}>
         <CircularProgress />
         <Typography variant="body1" sx={{ mt: 2 }}>
           Loading events...
@@ -160,8 +169,8 @@ const AdminEventsPage = () => {
 
       {/* Status Tabs */}
       <Box sx={{ mb: 3 }}>
-        <Tabs 
-          value={statusFilter} 
+        <Tabs
+          value={statusFilter}
           onChange={handleStatusFilterChange}
           indicatorColor="primary"
           textColor="primary"
@@ -207,23 +216,23 @@ const AdminEventsPage = () => {
           </TableHead>
           <TableBody>
             {paginatedEvents.length > 0 ? (
-              paginatedEvents.map(event => (
+              paginatedEvents.map((event) => (
                 <TableRow key={event._id} hover>
                   <TableCell>{event.title}</TableCell>
-                  <TableCell>{event.Organizer?.name || 'Unknown'}</TableCell>
+                  <TableCell>{event.Organizer?.name || "Unknown"}</TableCell>
                   <TableCell>{formatDate(event.date)}</TableCell>
                   <TableCell>{event.location}</TableCell>
                   <TableCell>${event.ticketPrice}</TableCell>
                   <TableCell>
-                    <Chip 
-                      label={event.status} 
+                    <Chip
+                      label={event.status}
                       color={getStatusColor(event.status)}
                       size="small"
                     />
                   </TableCell>
                   <TableCell>
-                    {event.status === 'pending' && (
-                      <Box sx={{ display: 'flex', gap: 1 }}>
+                    {event.status === "pending" && (
+                      <Box sx={{ display: "flex", gap: 1 }}>
                         <Button
                           size="small"
                           variant="outlined"
@@ -244,7 +253,7 @@ const AdminEventsPage = () => {
                         </Button>
                       </Box>
                     )}
-                    {event.status === 'approved' && (
+                    {event.status === "approved" && (
                       <Button
                         size="small"
                         variant="outlined"
@@ -255,7 +264,7 @@ const AdminEventsPage = () => {
                         Revoke Approval
                       </Button>
                     )}
-                    {event.status === 'declined' && (
+                    {event.status === "declined" && (
                       <Button
                         size="small"
                         variant="outlined"
@@ -282,8 +291,8 @@ const AdminEventsPage = () => {
 
       {/* Pagination */}
       {filteredEvents.length > rowsPerPage && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
-          <Pagination 
+        <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
+          <Pagination
             count={totalPages}
             page={page}
             onChange={(event, value) => setPage(value)}
@@ -298,7 +307,7 @@ const AdminEventsPage = () => {
           open={!!eventToApprove}
           title="Approve Event"
           content={`Are you sure you want to approve "${eventToApprove.title}"? This will make the event visible to all users.`}
-          onConfirm={() => handleUpdateStatus(eventToApprove._id, 'approved')}
+          onConfirm={() => handleUpdateStatus(eventToApprove._id, "approved")}
           onCancel={() => setEventToApprove(null)}
           confirmButtonText="Approve"
           confirmButtonColor="success"
@@ -311,7 +320,7 @@ const AdminEventsPage = () => {
           open={!!eventToDecline}
           title="Decline Event"
           content={`Are you sure you want to decline "${eventToDecline.title}"? This will prevent the event from being visible to users.`}
-          onConfirm={() => handleUpdateStatus(eventToDecline._id, 'declined')}
+          onConfirm={() => handleUpdateStatus(eventToDecline._id, "declined")}
           onCancel={() => setEventToDecline(null)}
           confirmButtonText="Decline"
           confirmButtonColor="error"
