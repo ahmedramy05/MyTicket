@@ -1,16 +1,16 @@
 import { useState, useContext } from "react";
 import api from "../../services/api";
-import AuthContext from "../../contexts/AuthContext";
-
+import { AuthContext, AuthProvider } from "../../contexts/AuthContext";
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [msg, setMsg] = useState("");
   const [error, setError] = useState("");
   const { setUser } = useContext(AuthContext);
 
-  const handleSubmit = async e => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setMsg(""); setError("");
+    setMsg("");
+    setError("");
     try {
       const res = await api.put("/auth/forgetPassword", { email });
       setMsg(res.data.message || "Check your email for reset instructions.");
@@ -30,10 +30,16 @@ export default function ForgotPassword() {
   return (
     <>
       <form onSubmit={handleSubmit}>
-        <input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="Enter your email" required />
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Enter your email"
+          required
+        />
         <button type="submit">Send Reset Link</button>
-        {msg && <div style={{color:"green"}}>{msg}</div>}
-        {error && <div style={{color:"red"}}>{error}</div>}
+        {msg && <div style={{ color: "green" }}>{msg}</div>}
+        {error && <div style={{ color: "red" }}>{error}</div>}
       </form>
       <button onClick={() => handleLogout(setUser)}>Logout</button>
     </>
