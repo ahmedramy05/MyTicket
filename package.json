@@ -18,11 +18,8 @@
     "mongoose": "^8.15.0",
     "nodemailer": "^7.0.3",
     "nodemon": "^3.1.10",
-<<<<<<< HEAD
-=======
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
->>>>>>> 1e8f31c73fa34b464aa852a2ecf99dde1852350c
     "react-router-dom": "^7.6.0",
     "recharts": "^2.15.3"
   },
