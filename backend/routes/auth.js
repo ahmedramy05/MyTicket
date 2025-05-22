@@ -2,7 +2,12 @@
 const express = require("express");
 const router = express.Router();
 
-const { login, register } = require("../controllers/authController"); // Assuming you have an authController with login and register functions
+const {
+  login,
+  register,
+  forgetPassword,
+  resetPassword,
+} = require("../controllers/authController"); // Assuming you have an authController with login, register, forgotPassword, and verifyOtpAndResetPassword functions
 
 // @desc    Register a new user
 // @route   POST /api/v1/auth/register
@@ -12,5 +17,11 @@ router.post("/register", register);
 // @route   POST /api/v1/auth/login
 // @access  Public
 router.post("/login", login);
+
+// Forgot Password - Send OTP
+router.put("/forgetPassword", forgetPassword);
+
+// Verify OTP and Reset Password
+router.post("/resetPassword/:resetToken", resetPassword);
 
 module.exports = router;
