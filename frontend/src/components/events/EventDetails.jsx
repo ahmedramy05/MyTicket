@@ -12,6 +12,8 @@ const EventDetails = ({ showToast }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showBookForm, setShowBookForm] = useState(false);
+  const [ticketQuantity, setTicketQuantity] = useState(1);
+  const [bookingLoading, setBookingLoading] = useState(false);
   const { user } = useContext(AuthContext);
 
   // Theme colors for consistent styling
@@ -46,6 +48,253 @@ const EventDetails = ({ showToast }) => {
 
     fetchEventDetails();
   }, [id]);
+
+  // Handle booking tickets
+  // Update the handleBookTickets function
+
+  const handleBookTickets = async () => {
+    if (!user || !event) return;
+
+    try {
+      setBookingLoading(true);
+
+      // Check if token exists before making the request
+      const token = localStorage.getItem("token");
+      if (!token) {
+        showToast("Authentication error. Please log in again.", "error");
+        // Redirect to login or refresh authentication
+        return;
+      }
+
+      const response = await api.post("/bookings", {
+        eventId: event._id,
+        tickets: ticketQuantity,
+      });
+
+      // Close form and show success message
+      setShowBookForm(false);
+      showToast(
+        `Successfully booked ${ticketQuantity} ticket${
+          ticketQuantity > 1 ? "s" : ""
+        }!`,
+        "success"
+      );
+
+      // Fetch updated event details after booking
+      const updatedEventResponse = await api.get(`/events/${id}`);
+      setEvent(updatedEventResponse.data);
+    } catch (err) {
+      console.error("Error booking tickets:", err);
+
+      // Check for specific authentication errors
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        showToast("Your session has expired. Please log in again.", "error");
+        // You could trigger logout here
+        // logout();
+      } else {
+        showToast(
+          err.response?.data?.error ||
+            "Failed to book tickets. Please try again.",
+          "error"
+        );
+      }
+    } finally {
+      setBookingLoading(false);
+    }
+  }; // Add this function before the renderBookingModal function
+
+  // Refresh ticket availability before attempting to book
+  const refreshTicketAvailability = async () => {
+    try {
+      const response = await api.get(`/events/${id}`);
+      if (response.data) {
+        setEvent(response.data);
+        return response.data.availableTickets;
+      }
+      return 0;
+    } catch (err) {
+      console.error("Error refreshing ticket availability:", err);
+      return 0;
+    }
+  };
+
+  // Render ticket quantity selector modal
+  const renderBookingModal = () => {
+    // Calculate maximum tickets a user can book (either available tickets or a limit of 10)
+    const maxTickets = Math.min(availableTickets, 10);
+
+    return (
+      <div
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: "rgba(0,0,0,0.5)",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          zIndex: 1000,
+        }}
+      >
+        <div
+          style={{
+            backgroundColor: colors.background,
+            borderRadius: "8px",
+            padding: "24px",
+            width: "90%",
+            maxWidth: "400px",
+            boxShadow: `0 4px 12px ${colors.shadow}`,
+          }}
+        >
+          <h3
+            style={{
+              fontSize: "18px",
+              fontWeight: "600",
+              marginBottom: "16px",
+              color: colors.text,
+            }}
+          >
+            Book Tickets
+          </h3>
+
+          <div style={{ marginBottom: "20px" }}>
+            <label
+              htmlFor="ticketQuantity"
+              style={{
+                display: "block",
+                marginBottom: "8px",
+                fontSize: "14px",
+                color: colors.textSecondary,
+              }}
+            >
+              How many tickets would you like to book?
+            </label>
+
+            <select
+              id="ticketQuantity"
+              value={ticketQuantity}
+              onChange={(e) => setTicketQuantity(Number(e.target.value))}
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: "6px",
+                border: `1px solid ${colors.border}`,
+                fontSize: "16px",
+                color: colors.text,
+                backgroundColor: colors.background,
+                appearance: "none",
+              }}
+            >
+              {[...Array(maxTickets)].map((_, i) => (
+                <option key={i + 1} value={i + 1}>
+                  {i + 1}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div
+            style={{
+              padding: "12px 0",
+              borderTop: `1px solid ${colors.border}`,
+              borderBottom: `1px solid ${colors.border}`,
+              marginBottom: "20px",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                marginBottom: "8px",
+              }}
+            >
+              <span style={{ color: colors.textSecondary }}>Ticket price:</span>
+              <span style={{ color: colors.text, fontWeight: "500" }}>
+                ${event.ticketPrice}
+              </span>
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+              }}
+            >
+              <span style={{ color: colors.textSecondary }}>Total price:</span>
+              <span style={{ color: colors.text, fontWeight: "600" }}>
+                ${(event.ticketPrice * ticketQuantity).toFixed(2)}
+              </span>
+            </div>
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+            }}
+          >
+            <button
+              onClick={() => setShowBookForm(false)}
+              disabled={bookingLoading}
+              style={{
+                padding: "10px 16px",
+                backgroundColor: "transparent",
+                border: `1px solid ${colors.border}`,
+                borderRadius: "6px",
+                color: colors.text,
+                fontSize: "14px",
+                fontWeight: "500",
+                cursor: "pointer",
+              }}
+            >
+              Cancel
+            </button>
+
+            <button
+              onClick={handleBookTickets}
+              disabled={bookingLoading}
+              style={{
+                padding: "10px 20px",
+                backgroundColor: colors.primary,
+                border: "none",
+                borderRadius: "6px",
+                color: "white",
+                fontSize: "14px",
+                fontWeight: "500",
+                cursor: bookingLoading ? "not-allowed" : "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              {bookingLoading ? (
+                <>
+                  <div
+                    style={{
+                      width: "18px",
+                      height: "18px",
+                      border: "2px solid rgba(255,255,255,0.2)",
+                      borderTopColor: "white",
+                      borderRadius: "50%",
+                      animation: "spin 1s linear infinite",
+                      marginRight: "8px",
+                    }}
+                  ></div>
+                  Processing...
+                </>
+              ) : (
+                `Book ${
+                  ticketQuantity > 1 ? ticketQuantity + " tickets" : "1 ticket"
+                }`
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   if (loading) {
     return (
@@ -137,8 +386,8 @@ const EventDetails = ({ showToast }) => {
 
   // Calculate ticket availability
   const totalTickets = event.totalTickets || 0;
-  const bookedTickets = event.bookedTickets || 0;
-  const availableTickets = totalTickets - bookedTickets;
+  const availableTickets = event.availableTickets || 0; // Use direct value from backend
+  const bookedTickets = totalTickets - availableTickets; // Calculate booked tickets if needed
   const isAvailable = availableTickets > 0;
   const soldPercentage =
     totalTickets > 0 ? Math.round((bookedTickets / totalTickets) * 100) : 0;
@@ -460,9 +709,7 @@ const EventDetails = ({ showToast }) => {
                 {/* Booking button or login prompt */}
                 {user ? (
                   <button
-                    onClick={() =>
-                      showToast("Booking functionality coming soon!", "info")
-                    }
+                    onClick={() => setShowBookForm(true)}
                     disabled={!isAvailable}
                     style={{
                       width: "100%",
@@ -525,6 +772,9 @@ const EventDetails = ({ showToast }) => {
           </div>
         </div>
       </div>
+
+      {/* Booking Modal */}
+      {showBookForm && renderBookingModal()}
 
       <Footer />
     </>

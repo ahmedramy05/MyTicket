@@ -260,6 +260,14 @@ export default function Navbar() {
                 >
                   Profile
                 </div>
+                {/* My Bookings link for all authenticated users */}
+                <Link
+                  to="/bookings"
+                  style={styles.dropdownItem}
+                  onClick={() => setShowUserMenu(false)}
+                >
+                  My Bookings
+                </Link>
                 {user.role === "Organizer" && (
                   <Link
                     to="/my-events"
@@ -390,6 +398,14 @@ export default function Navbar() {
                 >
                   Profile
                 </div>
+                {/* My Bookings link for all authenticated users */}
+                <Link
+                  to="/bookings"
+                  style={styles.mobileLink}
+                  onClick={() => setIsOpen(false)}
+                >
+                  My Bookings
+                </Link>
                 {user.role === "Organizer" && (
                   <Link
                     to="/my-events"

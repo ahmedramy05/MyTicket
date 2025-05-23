@@ -19,11 +19,17 @@ import RegisterForm from "./components/auth/RegisterForm";
 
 // Event Components
 import EventList from "./components/events/EventList";
-import EventDetails from "./components/events/EventDetails"; // Import EventDetails component
+import EventDetails from "./components/events/EventDetails";
 
 // Profile and Route Protection
 import ProfilePage from "./components/user/ProfilePage";
 import PrivateRoute from "./components/shared/PrivateRoute";
+
+// Booking Components
+import UserBookingsPage from "./components/bookings/UserBookingsPage";
+
+// If you have a BookingDetails component, import it here
+// import BookingDetails from "./components/bookings/BookingDetails";
 
 // Loading component
 const LoadingSpinner = () => (
@@ -130,11 +136,30 @@ function App() {
                 path="/events"
                 element={<EventList showToast={showToast} />}
               />
-              {/* Add Event Details route with ID parameter */}
               <Route
                 path="/events/:id"
                 element={<EventDetails showToast={showToast} />}
               />
+
+              {/* Bookings Route - Protected for any authenticated user */}
+              <Route
+                path="/bookings"
+                element={
+                  <PrivateRoute>
+                    <UserBookingsPage showToast={showToast} />
+                  </PrivateRoute>
+                }
+              />
+
+              {/* Uncomment and implement BookingDetails if you have it */}
+              {/* <Route
+                path="/bookings/:id"
+                element={
+                  <PrivateRoute>
+                    <BookingDetails showToast={showToast} />
+                  </PrivateRoute>
+                }
+              /> */}
 
               {/* User Profile Route - Protected */}
               <Route
