@@ -80,7 +80,7 @@ const UpdateProfileForm = ({ profile, onUpdateSuccess, onCancel }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-    // Inside handleSubmit function
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -96,25 +96,17 @@ const UpdateProfileForm = ({ profile, onUpdateSuccess, onCancel }) => {
     setIsSubmitting(true);
     
     try {
-      // Prepare data for API - include all fields except confirmPassword
-      const updateData = {
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone, // Include even if empty
-        address: formData.address // Include even if empty
-      };
-      
-      // Only include password if it's not empty
-      if (formData.password && formData.password.trim() !== '') {
-        updateData.password = formData.password;
-      }
-      
-      console.log("Sending update request with data:", updateData);
+      // Prepare data for API (exclude confirmPassword and empty fields)
+      const updateData = Object.keys(formData).reduce((acc, key) => {
+        if (key !== 'confirmPassword' && formData[key]) {
+          acc[key] = formData[key];
+        }
+        return acc;
+      }, {});
       
       // Send update request
       const response = await api.put('/users/profile', updateData);
       
-      console.log("Profile update response:", response.data);
       setSubmitSuccess(true);
       
       // Notify parent component about successful update
@@ -131,6 +123,7 @@ const UpdateProfileForm = ({ profile, onUpdateSuccess, onCancel }) => {
       setIsSubmitting(false);
     }
   };
+
   return (
     <Box component="form" onSubmit={handleSubmit} noValidate>
       <Typography variant="h5" component="h2" gutterBottom>

@@ -57,8 +57,8 @@ const UpdateUserRoleModal = ({ user, onClose, onUpdateRole }) => {
       console.log("Sending update request with data:", updateData);
       
       // Send update request
-const response = await api.put('/api/v1/users/profile', updateData);
-
+      const response = await api.put('/users/profile', updateData);
+      
       console.log("Profile update response:", response.data);
       setSubmitSuccess(true);
       

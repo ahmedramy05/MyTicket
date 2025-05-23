@@ -49,8 +49,6 @@ const getUserProfile = async (req, res) => {
 
 const updateUserProfile = async (req, res) => {
   try {
-    console.log("Update request received:", req.body);
-    
     // Find the user by ID (from auth middleware)
     const user = await User.findById(req.user.id);
 
@@ -64,22 +62,19 @@ const updateUserProfile = async (req, res) => {
     // Update user fields that were sent in the request
     const { name, email, password, phone, address } = req.body;
 
-    // Only update fields that were provided
     if (name) user.name = name;
     if (email) user.email = email;
-    if (phone !== undefined) user.phone = phone; // Allow empty string
-    if (address !== undefined) user.address = address; // Allow empty string
+    if (phone) user.phone = phone;
+    if (address) user.address = address;
 
     // If password is provided, hash it before saving
-    if (password && password.trim() !== '') {
+    if (password) {
       const salt = await bcrypt.genSalt(10);
       user.password = await bcrypt.hash(password, salt);
     }
 
     // Save the updated user
     const updatedUser = await user.save();
-    console.log("User updated successfully");
-    
     // Return the updated user without password
     res.status(200).json({
       success: true,
@@ -87,10 +82,9 @@ const updateUserProfile = async (req, res) => {
         _id: updatedUser._id,
         name: updatedUser.name,
         email: updatedUser.email,
-        phone: updatedUser.phone || '',
-        address: updatedUser.address || '',
+        phone: updatedUser.phone,
+        address: updatedUser.address,
         role: updatedUser.role,
-        createdAt: updatedUser.createdAt
       },
     });
   } catch (error) {
