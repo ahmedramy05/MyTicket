@@ -354,3 +354,5 @@ const EventAnalytics = ({ showToast }) => {
 };
 
 export default EventAnalytics;
+
+// This code is a React component that fetches and displays event analytics data.
