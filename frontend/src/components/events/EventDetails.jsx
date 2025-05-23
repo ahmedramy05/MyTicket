@@ -58,6 +58,14 @@ const EventDetails = ({ showToast }) => {
     try {
       setBookingLoading(true);
 
+      // Check if token exists before making the request
+      const token = localStorage.getItem("token");
+      if (!token) {
+        showToast("Authentication error. Please log in again.", "error");
+        // Redirect to login or refresh authentication
+        return;
+      }
+
       const response = await api.post("/bookings", {
         eventId: event._id,
         tickets: ticketQuantity,
@@ -77,16 +85,23 @@ const EventDetails = ({ showToast }) => {
       setEvent(updatedEventResponse.data);
     } catch (err) {
       console.error("Error booking tickets:", err);
-      showToast(
-        err.response?.data?.error ||
-          "Failed to book tickets. Please try again.",
-        "error"
-      );
+
+      // Check for specific authentication errors
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        showToast("Your session has expired. Please log in again.", "error");
+        // You could trigger logout here
+        // logout();
+      } else {
+        showToast(
+          err.response?.data?.error ||
+            "Failed to book tickets. Please try again.",
+          "error"
+        );
+      }
     } finally {
       setBookingLoading(false);
     }
-  };
-  // Add this function before the renderBookingModal function
+  }; // Add this function before the renderBookingModal function
 
   // Refresh ticket availability before attempting to book
   const refreshTicketAvailability = async () => {
