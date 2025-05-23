@@ -363,7 +363,6 @@ export default function Navbar() {
             {/* Mobile navigation links */}
             {[
               { path: "/events", label: "Events" },
-              { path: "/organizers", label: "For Organizers" },
               { path: "/about", label: "About" },
             ].map((link) => (
               <Link
