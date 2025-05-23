@@ -80,7 +80,7 @@ export default function Toast({
       justifyContent: "space-between",
       minWidth: "280px",
       maxWidth: "450px",
-      zIndex: 1000,
+      zIndex: 2001, // Increased z-index to be above navbar
       transition: "all 0.3s ease",
       ...positionStyles,
       ...typeStyles,
