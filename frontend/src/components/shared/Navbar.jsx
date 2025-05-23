@@ -214,8 +214,6 @@ export default function Navbar() {
         <div style={styles.navLinks}>
           {[
             { path: "/events", label: "Events" },
-            { path: "/venues", label: "Venues" },
-            { path: "/organizers", label: "For Organizers" },
             { path: "/about", label: "About" },
           ].map((link) => (
             <Link
@@ -357,7 +355,6 @@ export default function Navbar() {
             {/* Mobile navigation links */}
             {[
               { path: "/events", label: "Events" },
-              { path: "/venues", label: "Venues" },
               { path: "/organizers", label: "For Organizers" },
               { path: "/about", label: "About" },
             ].map((link) => (
