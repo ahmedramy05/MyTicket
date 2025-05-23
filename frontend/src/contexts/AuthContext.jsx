@@ -58,7 +58,7 @@ export const AuthProvider = ({ children }) => {
       setIsLoading(true);
       setError(null);
 
-      const response = await api.post("/api/v1/login", {
+      const response = await api.post("/login", {
         email,
         password,
       });
@@ -91,7 +91,7 @@ export const AuthProvider = ({ children }) => {
       setIsLoading(true);
       setError(null);
 
-      const response = await api.post("/api/v1/register", userData);
+      const response = await api.post("/register", userData);
       if (response.data.success) {
         // Automatically log in after registration
         localStorage.setItem("token", response.data.token);
@@ -122,7 +122,7 @@ export const AuthProvider = ({ children }) => {
       setIsLoading(true);
 
       // Call logout endpoint to invalidate token on server
-      await api.post("/api/v1/auth/logout");
+      await api.post("/auth/logout");
 
       // Remove token from storage
       localStorage.removeItem("token");
@@ -151,7 +151,7 @@ export const AuthProvider = ({ children }) => {
       setIsLoading(true);
       setError(null);
 
-      const response = await api.post("/api/v1/auth/forgetPassword", { email });
+      const response = await api.put("/forgetPassword", { email });
 
       return {
         success: response.data.success,
@@ -173,12 +173,9 @@ export const AuthProvider = ({ children }) => {
       setIsLoading(true);
       setError(null);
 
-      const response = await api.post(
-        `/api/v1/auth/resetPassword/${resetToken}`,
-        {
-          password,
-        }
-      );
+      const response = await api.post(`/resetPassword/${resetToken}`, {
+        password,
+      });
 
       return {
         success: response.data.success,
