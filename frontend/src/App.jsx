@@ -20,6 +20,9 @@ import RegisterForm from "./components/auth/RegisterForm";
 // Event Components
 import EventList from "./components/events/EventList";
 import EventDetails from "./components/events/EventDetails";
+import MyEventsPage from "./components/events/MyEventsPage";
+import EventForm from "./components/events/EventForm";
+import EventAnalytics from "./components/events/EventAnalytics"; // Add this import
 
 // Profile and Route Protection
 import ProfilePage from "./components/user/ProfilePage";
@@ -27,6 +30,9 @@ import PrivateRoute from "./components/shared/PrivateRoute";
 
 // Booking Components
 import UserBookingsPage from "./components/bookings/UserBookingsPage";
+
+// Unauthorized access component
+import UnauthorizedPage from "./components/shared/UnauthorizedPage";
 
 // If you have a BookingDetails component, import it here
 // import BookingDetails from "./components/bookings/BookingDetails";
@@ -151,6 +157,41 @@ function App() {
                 }
               />
 
+              {/* Organizer Routes - Protected */}
+              <Route
+                path="/my-events"
+                element={
+                  <PrivateRoute allowedRoles={["Organizer"]}>
+                    <MyEventsPage showToast={showToast} />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/my-events/new"
+                element={
+                  <PrivateRoute allowedRoles={["Organizer"]}>
+                    <EventForm showToast={showToast} />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/my-events/:id/edit"
+                element={
+                  <PrivateRoute allowedRoles={["Organizer"]}>
+                    <EventForm showToast={showToast} />
+                  </PrivateRoute>
+                }
+              />
+              {/* Add the new analytics route */}
+              <Route
+                path="/my-events/analytics"
+                element={
+                  <PrivateRoute allowedRoles={["Organizer"]}>
+                    <EventAnalytics showToast={showToast} />
+                  </PrivateRoute>
+                }
+              />
+
               {/* Uncomment and implement BookingDetails if you have it */}
               {/* <Route
                 path="/bookings/:id"
@@ -181,6 +222,9 @@ function App() {
                 path="/how-it-works"
                 element={<ComingSoon title="How It Works" />}
               />
+              
+              {/* Unauthorized access page */}
+              <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
               {/* Catch-all route */}
               <Route path="*" element={<Navigate to="/" replace />} />

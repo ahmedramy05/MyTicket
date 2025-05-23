@@ -1,5 +1,5 @@
-import { Navigate, useLocation } from "react-router-dom";
 import { useContext } from "react";
+import { Navigate, useLocation } from "react-router-dom";
 import { AuthContext } from "../../contexts/AuthContext";
 
 /**
@@ -10,7 +10,7 @@ import { AuthContext } from "../../contexts/AuthContext";
  * @param {React.ReactNode} props.children - The components to render if authenticated
  * @param {string[]} [props.allowedRoles] - Optional array of roles allowed to access the route
  */
-export default function PrivateRoute({ children, allowedRoles }) {
+export default function PrivateRoute({ children, allowedRoles = [] }) {
   const location = useLocation();
   const { user, isAuthenticated, isLoading } = useContext(AuthContext);
 
@@ -19,14 +19,14 @@ export default function PrivateRoute({ children, allowedRoles }) {
     return <div>Loading...</div>;
   }
 
-  // If not authenticated, redirect to login page
+  // If not authenticated, redirect to login page and save attempted URL
   if (!isAuthenticated) {
-    // Save the current location they tried to access for redirecting after login
-    return <Navigate to="/login" state={{ from: location.pathname }} replace />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // If roles are specified, check if user has permission
-  if (allowedRoles && !allowedRoles.includes(user.role)) {
+  // If allowedRoles is provided and not empty, check if user's role is allowed
+  if (allowedRoles.length > 0 && !allowedRoles.includes(user?.role)) {
+    // Redirect to unauthorized page if user doesn't have the required role
     return <Navigate to="/unauthorized" replace />;
   }
 
