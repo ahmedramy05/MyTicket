@@ -25,10 +25,16 @@ const UpdateUserRoleModal = ({ user, onClose, onUpdateRole }) => {
     setSelectedRole(event.target.value);
   };
 
-    // Inside handleSubmit function
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
+  const validateForm = () => {
+    if (!selectedRole) {
+      setSubmitError('Please select a role');
+      return false;
+    }
+    return true;
+  };
+
+  // Fixed handleSubmit function to properly update user role
+  const handleSubmit = async () => {
     // Reset submission states
     setSubmitError(null);
     setSubmitSuccess(false);
@@ -41,37 +47,14 @@ const UpdateUserRoleModal = ({ user, onClose, onUpdateRole }) => {
     setIsSubmitting(true);
     
     try {
-      // Prepare data for API - include all fields except confirmPassword
-      const updateData = {
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone, // Include even if empty
-        address: formData.address // Include even if empty
-      };
+      // Call the onUpdateRole function passed as prop from parent
+      await onUpdateRole(user._id, selectedRole);
       
-      // Only include password if it's not empty
-      if (formData.password && formData.password.trim() !== '') {
-        updateData.password = formData.password;
-      }
-      
-      console.log("Sending update request with data:", updateData);
-      
-      // Send update request
-      const response = await api.put('/users/profile', updateData);
-      
-      console.log("Profile update response:", response.data);
+      // Set success state
       setSubmitSuccess(true);
-      
-      // Notify parent component about successful update
-      if (onUpdateSuccess) {
-        onUpdateSuccess(response.data.data);
-      }
     } catch (err) {
-      console.error('Error updating profile:', err);
-      setSubmitError(
-        err.response?.data?.message || 
-        'Failed to update profile. Please try again later.'
-      );
+      console.error('Error updating role:', err);
+      setSubmitError('Failed to update role. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
