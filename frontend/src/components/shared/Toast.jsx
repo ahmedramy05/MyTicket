@@ -146,24 +146,24 @@ export default function Toast({
   );
 }
 
-// Helper function to get position-specific styles
 function getPositionStyles(position) {
   const baseOffset = "20px";
+  const topOffset = "80px"; // Increased top offset to display below navbar
 
   switch (position) {
     case "top-left":
-      return { top: baseOffset, left: baseOffset };
+      return { top: topOffset, left: baseOffset }; // Changed from baseOffset to topOffset
     case "top-center":
-      return { top: baseOffset, left: "50%", transform: "translateX(-50%)" };
+      return { top: topOffset, left: "50%", transform: "translateX(-50%)" }; // Changed from baseOffset to topOffset
     case "bottom-right":
-      return { bottom: baseOffset, right: baseOffset };
+      return { bottom: baseOffset, right: baseOffset }; // No change needed
     case "bottom-left":
-      return { bottom: baseOffset, left: baseOffset };
+      return { bottom: baseOffset, left: baseOffset }; // No change needed
     case "bottom-center":
-      return { bottom: baseOffset, left: "50%", transform: "translateX(-50%)" };
+      return { bottom: baseOffset, left: "50%", transform: "translateX(-50%)" }; // No change needed
     case "top-right":
     default:
-      return { top: baseOffset, right: baseOffset };
+      return { top: topOffset, right: baseOffset }; // Changed from baseOffset to topOffset
   }
 }
 

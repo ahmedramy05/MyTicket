@@ -20,8 +20,8 @@ const EventCard = ({ event, showStatus = false }) => {
 
   // Calculate ticket availability metrics
   const totalTickets = event.totalTickets || 0;
-  const bookedTickets = event.bookedTickets || 0;
-  const availableTickets = totalTickets - bookedTickets;
+  const availableTickets = event.availableTickets || 0; // Use direct value from backend
+  const bookedTickets = totalTickets - availableTickets; // Calculate booked tickets if needed
   const soldPercentage =
     totalTickets > 0 ? Math.round((bookedTickets / totalTickets) * 100) : 0;
 
