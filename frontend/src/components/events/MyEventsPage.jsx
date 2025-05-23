@@ -6,6 +6,7 @@ import Footer from '../shared/Footer';
 import EventCard from './EventCard';
 import { AuthContext } from '../../contexts/AuthContext';
 import AddIcon from '@mui/icons-material/Add';
+import BarChartIcon from '@mui/icons-material/BarChart';
 
 const MyEventsPage = ({ showToast }) => {
   const [events, setEvents] = useState([]);
@@ -26,17 +27,17 @@ const MyEventsPage = ({ showToast }) => {
   }, [user]);
   
   const fetchMyEvents = async () => {
-  try {
-    setLoading(true);
-    const response = await api.get('/events/user/events'); // Changed from '/events/my-events' to match backend
-    setEvents(response.data); // Changed from response.data.data to response.data
-  } catch (error) {
-    console.error('Failed to load events:', error);
-    showToast('Failed to load your events', 'error');
-  } finally {
-    setLoading(false);
-  }
-};
+    try {
+      setLoading(true);
+      const response = await api.get('/events/user/events');
+      setEvents(response.data);
+    } catch (error) {
+      console.error('Failed to load events:', error);
+      showToast('Failed to load your events', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
   
   const handleDeleteEvent = async (eventId) => {
     if (window.confirm('Are you sure you want to delete this event? This action cannot be undone.')) {
@@ -78,10 +79,16 @@ const MyEventsPage = ({ showToast }) => {
             <h1 style={styles.title}>My Events</h1>
             <p style={styles.subtitle}>Manage your created events</p>
           </div>
-          <Link to="/my-events/new" style={styles.createButton}>
-            <AddIcon style={{ marginRight: '8px' }} />
-            Create Event
-          </Link>
+          <div style={styles.headerButtons}>
+            <Link to="/my-events/analytics" style={styles.analyticsButton}>
+              <BarChartIcon style={{ marginRight: '8px' }} />
+              Analytics
+            </Link>
+            <Link to="/my-events/new" style={styles.createButton}>
+              <AddIcon style={{ marginRight: '8px' }} />
+              Create Event
+            </Link>
+          </div>
         </div>
         
         {/* Tabs for filtering */}
@@ -204,6 +211,10 @@ const styles = {
     color: '#6b7280',
     margin: 0,
   },
+  headerButtons: {
+    display: 'flex',
+    gap: '1rem',
+  },
   createButton: {
     display: 'flex',
     alignItems: 'center',
@@ -217,6 +228,18 @@ const styles = {
     border: 'none',
     cursor: 'pointer',
     boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+  },
+  analyticsButton: {
+    display: 'flex',
+    alignItems: 'center',
+    padding: '0.75rem 1.5rem',
+    backgroundColor: '#6366f1',
+    color: 'white',
+    borderRadius: '0.5rem',
+    textDecoration: 'none',
+    fontWeight: '500',
+    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+    transition: 'background-color 0.2s',
   },
   tabs: {
     display: 'flex',

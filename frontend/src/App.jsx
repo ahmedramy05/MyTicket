@@ -23,6 +23,7 @@ import EventDetails from "./components/events/EventDetails";
 
 import MyEventsPage from "./components/events/MyEventsPage"; // Added MyEventsPage import
 import EventForm from "./components/events/EventForm";
+import EventAnalytics from "./components/events/EventAnalytics"; // Add this import
 
 // Profile and Route Protection
 import ProfilePage from "./components/user/ProfilePage";
@@ -188,6 +189,15 @@ function App() {
                 element={
                   <PrivateRoute allowedRoles={["Organizer"]}>
                     <EventForm showToast={showToast} />
+                  </PrivateRoute>
+                }
+              />
+              {/* Add the new analytics route */}
+              <Route
+                path="/my-events/analytics"
+                element={
+                  <PrivateRoute allowedRoles={["Organizer"]}>
+                    <EventAnalytics showToast={showToast} />
                   </PrivateRoute>
                 }
               />

@@ -291,30 +291,28 @@ const getUserAnalytics = async (req, res) => {
     // Find all events where the current user is the organizer
     const events = await Event.find({ Organizer: req.user.id });
 
-    // Calculate total revenue and total bookings
-    let totalRevenue = 0;
-    let totalBookings = 0;
+    // Format the data in the structure expected by the frontend
+    const analytics = events.map((event) => {
+      const ticketsSold = event.totalTickets - event.availableTickets;
+      const percentageBooked = (
+        (ticketsSold / event.totalTickets) *
+        100
+      ).toFixed(2);
 
-    for (const event of events) {
-      const bookings = await Booking.find({ event: event._id });
-      totalBookings += bookings.length;
-      totalRevenue += bookings.reduce((sum, booking) => sum + booking.price, 0);
-    }
-
-    res.status(200).json({
-      success: true,
-      data: {
-        totalRevenue,
-        totalBookings,
-        eventsCount: events.length,
-      },
+      return {
+        eventId: event._id,
+        title: event.title,
+        percentageBooked: `${percentageBooked}%`,
+        ticketsSold,
+        totalTickets: event.totalTickets,
+      };
     });
+
+    // Return the analytics data directly (not wrapped in a data property)
+    res.json(analytics);
   } catch (error) {
     console.error("Error fetching user analytics:", error);
-    res.status(500).json({
-      success: false,
-      message: "Server error while fetching user analytics",
-    });
+    res.status(500).json({ error: "Server error while fetching analytics" });
   }
 };
 
