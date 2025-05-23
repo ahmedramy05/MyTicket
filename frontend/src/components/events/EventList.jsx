@@ -2,6 +2,15 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { Link } from "react-router-dom";
 import api from "../../services/api";
 
+// Import shared components
+import Navbar from "../shared/Navbar";
+import Footer from "../shared/Footer";
+import Loader from "../shared/Loader";
+import Toast from "../shared/Toast";
+
+// Import EventCard component
+import EventCard from "./EventCard";
+
 const EventList = () => {
   // Core state
   const [events, setEvents] = useState([]);
@@ -9,6 +18,13 @@ const EventList = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  // Toast notification state
+  const [toast, setToast] = useState({
+    visible: false,
+    message: "",
+    type: "info",
+  });
 
   // Filter state
   const [searchQuery, setSearchQuery] = useState("");
@@ -62,11 +78,27 @@ const EventList = () => {
     const fetchEvents = async () => {
       try {
         setLoading(true);
-        const response = await api.get("/api/v1/events");
+        const response = await api.get("/events");
         setEvents(response.data);
         setFilteredEvents(response.data);
+
+        // Show success toast when events load successfully
+        if (response.data.length > 0) {
+          setToast({
+            visible: true,
+            message: `Successfully loaded ${response.data.length} events`,
+            type: "success",
+          });
+        }
       } catch (err) {
         setError("Failed to load events. Please try again later.");
+
+        // Show error toast
+        setToast({
+          visible: true,
+          message: "Failed to load events. Please try again later.",
+          type: "error",
+        });
       } finally {
         setLoading(false);
       }
@@ -151,7 +183,19 @@ const EventList = () => {
     setSearchQuery("");
     setCategoryFilter("all");
     setSortBy("date");
+
+    // Show toast notification when filters are reset
+    setToast({
+      visible: true,
+      message: "All filters have been reset",
+      type: "info",
+    });
   }, []);
+
+  // Handle toast close
+  const handleToastClose = () => {
+    setToast({ ...toast, visible: false });
+  };
 
   // Style objects for cleaner JSX
   const styles = {
@@ -160,6 +204,7 @@ const EventList = () => {
       margin: "0 auto",
       padding: "1rem",
       backgroundColor: colors.background,
+      minHeight: "calc(100vh - 160px)", // Account for navbar and footer
     },
     hero: {
       background: `linear-gradient(135deg, ${colors.primary}, ${colors.accent})`,
@@ -227,7 +272,7 @@ const EventList = () => {
       border: `1px solid ${colors.border}`,
       borderRadius: "8px",
       fontSize: "1rem",
-      backgroundColor: colors.inputBg,
+      backgroundColor: "white",
       boxSizing: "border-box",
       outline: "none",
       transition: "border-color 0.2s, box-shadow 0.2s",
@@ -278,17 +323,6 @@ const EventList = () => {
         : "repeat(4, 1fr)",
       gap: "1rem",
     },
-    eventCard: {
-      backgroundColor: colors.cardBg,
-      borderRadius: "8px",
-      overflow: "hidden",
-      boxShadow: `0 1px 3px ${colors.shadow}`,
-      transition: "transform 0.2s, box-shadow 0.2s",
-      cursor: "pointer",
-      height: "100%",
-      display: "flex",
-      flexDirection: "column",
-    },
     pagination: {
       marginTop: "2.5rem",
       marginBottom: "1.5rem",
@@ -316,760 +350,588 @@ const EventList = () => {
       transition: "background-color 0.2s, transform 0.1s",
       boxShadow: `0 2px 4px ${colors.shadow}`,
     },
+    mainContent: {
+      minHeight: "70vh", // Ensure there's always content space
+    },
   };
 
   return (
-    <div style={styles.container}>
-      {/* Hero section */}
-      <div style={styles.hero}>
-        <div style={styles.heroPattern}></div>
-        <h1 style={styles.heroTitle}>Discover Amazing Events</h1>
-        <p
-          style={{
-            fontSize: "1.1rem",
-            marginBottom: "1.5rem",
-            maxWidth: "600px",
-            margin: "0 auto 1.5rem",
-            opacity: 0.9,
-          }}
-        >
-          Find and book unique experiences that match your interests
-        </p>
+    <>
+      {/* Navbar component */}
+      <Navbar />
 
-        {/* Mobile filter toggle */}
-        {isMobile && (
-          <button
-            onClick={() => setShowFilters(!showFilters)}
+      {/* Toast notification */}
+      {toast.visible && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={handleToastClose}
+        />
+      )}
+
+      <div style={styles.container}>
+        {/* Hero section */}
+        <div style={styles.hero}>
+          <div style={styles.heroPattern}></div>
+          <h1 style={styles.heroTitle}>Discover Amazing Events</h1>
+          <p
             style={{
-              width: "100%",
-              height: "44px",
-              padding: "0.75rem",
-              backgroundColor: "rgba(255, 255, 255, 0.15)",
-              border: "1px solid rgba(255, 255, 255, 0.3)",
-              borderRadius: "8px",
-              color: "white",
-              cursor: "pointer",
-              backdropFilter: "blur(4px)",
-              fontWeight: "500",
+              fontSize: "1.1rem",
+              marginBottom: "1.5rem",
+              maxWidth: "600px",
+              margin: "0 auto 1.5rem",
+              opacity: 0.9,
             }}
           >
-            {showFilters ? "Hide Filters ▲" : "Show Filters ▼"}
-          </button>
-        )}
-      </div>
+            Find and book unique experiences that match your interests
+          </p>
 
-      {/* Search and filters */}
-      <div style={styles.filterSection}>
-        <div style={styles.filterBar}>
-          {/* Search input */}
-          <div style={styles.searchWrapper}>
-            <div style={styles.searchIcon}>🔍</div>
-            <input
-              placeholder="Search events..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={styles.searchInput}
-              aria-label="Search events"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery("")}
-                style={{
-                  position: "absolute",
-                  right: "12px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  color: "#9ca3af",
-                  display: "flex",
-                  alignItems: "center",
-                }}
-                aria-label="Clear search"
-              >
-                ✕
-              </button>
-            )}
-          </div>
-
-          {/* Filters button */}
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            style={styles.filterButton}
-            aria-expanded={showFilters}
-          >
-            <span>🔍</span>
-            {showFilters ? "Hide Filters" : "Show Filters"}
-          </button>
-        </div>
-
-        {/* Filter panel */}
-        <div id="filter-panel" style={styles.filterPanel}>
-          <div style={styles.filterGrid}>
-            {/* Category filter */}
-            <div>
-              <label
-                style={{
-                  display: "block",
-                  fontSize: "0.875rem",
-                  fontWeight: "500",
-                  marginBottom: "0.5rem",
-                  color: colors.text,
-                }}
-                htmlFor="category-filter"
-              >
-                Category
-              </label>
-              <div style={{ position: "relative" }}>
-                <select
-                  id="category-filter"
-                  value={categoryFilter}
-                  onChange={(e) => setCategoryFilter(e.target.value)}
-                  style={{
-                    width: "100%",
-                    height: "40px",
-                    paddingLeft: "0.75rem",
-                    paddingRight: "2rem",
-                    border: `1px solid ${colors.border}`,
-                    borderRadius: "6px",
-                    backgroundColor: colors.inputBg,
-                    appearance: "none",
-                    cursor: "pointer",
-                    fontSize: "0.95rem",
-                  }}
-                >
-                  <option value="all">All Categories</option>
-                  {categories
-                    .filter((cat) => cat !== "all")
-                    .map((cat) => (
-                      <option key={cat} value={cat}>
-                        {getEmoji(cat)} {cat}
-                      </option>
-                    ))}
-                </select>
-                <div
-                  style={{
-                    position: "absolute",
-                    right: "0.75rem",
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    pointerEvents: "none",
-                  }}
-                >
-                  ▼
-                </div>
-              </div>
-            </div>
-
-            {/* Sort by filter */}
-            <div>
-              <label
-                style={{
-                  display: "block",
-                  fontSize: "0.875rem",
-                  fontWeight: "500",
-                  marginBottom: "0.5rem",
-                  color: colors.text,
-                }}
-                htmlFor="sort-filter"
-              >
-                Sort By
-              </label>
-              <div style={{ position: "relative" }}>
-                <select
-                  id="sort-filter"
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  style={{
-                    width: "100%",
-                    height: "40px",
-                    paddingLeft: "0.75rem",
-                    paddingRight: "2rem",
-                    border: `1px solid ${colors.border}`,
-                    borderRadius: "6px",
-                    backgroundColor: colors.inputBg,
-                    appearance: "none",
-                    fontSize: "0.95rem",
-                  }}
-                >
-                  <option value="date">Date: Upcoming First</option>
-                  <option value="price-asc">Price: Low to High</option>
-                  <option value="price-desc">Price: High to Low</option>
-                </select>
-                <div
-                  style={{
-                    position: "absolute",
-                    right: "0.75rem",
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    pointerEvents: "none",
-                  }}
-                >
-                  ▼
-                </div>
-              </div>
-            </div>
-
-            {/* Filter Actions */}
-            <div
+          {/* Mobile filter toggle */}
+          {isMobile && (
+            <button
+              onClick={() => setShowFilters(!showFilters)}
               style={{
-                display: "flex",
-                alignItems: "flex-end",
-                gap: "0.75rem",
+                width: "100%",
+                height: "44px",
+                padding: "0.75rem",
+                backgroundColor: "rgba(255, 255, 255, 0.15)",
+                border: "1px solid rgba(255, 255, 255, 0.3)",
+                borderRadius: "8px",
+                color: "white",
+                cursor: "pointer",
+                backdropFilter: "blur(4px)",
+                fontWeight: "500",
               }}
             >
-              <button
-                onClick={handleResetFilters}
-                style={{
-                  flex: 1,
-                  height: "40px",
-                  padding: "0.65rem",
-                  backgroundColor: colors.inputBg,
-                  border: `1px solid ${colors.border}`,
-                  borderRadius: "6px",
-                  color: colors.text,
-                  fontSize: "0.875rem",
-                  cursor: "pointer",
-                  fontWeight: "500",
-                }}
-              >
-                Reset All
-              </button>
-              <button
-                onClick={() => isMobile && setShowFilters(false)}
-                style={{
-                  flex: 1,
-                  height: "40px",
-                  padding: "0.65rem",
-                  backgroundColor: colors.primary,
-                  border: "none",
-                  borderRadius: "6px",
-                  color: "white",
-                  fontSize: "0.875rem",
-                  cursor: "pointer",
-                  fontWeight: "500",
-                }}
-              >
-                Apply Filters
-              </button>
-            </div>
-          </div>
+              {showFilters ? "Hide Filters ▲" : "Show Filters ▼"}
+            </button>
+          )}
         </div>
 
-        {/* Active filters */}
-        {(searchQuery || categoryFilter !== "all" || sortBy !== "date") && (
-          <div
-            style={{
-              marginTop: "1rem",
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "0.5rem",
-              alignItems: "center",
-            }}
-          >
-            <span style={{ fontSize: "0.85rem", color: colors.textSecondary }}>
-              Active filters:
-            </span>
-
-            {searchQuery && (
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  backgroundColor: "rgba(99, 102, 241, 0.1)",
-                  borderRadius: "20px",
-                  padding: "0.3rem 0.75rem",
-                  fontSize: "0.875rem",
-                  color: colors.primary,
-                  height: "28px",
-                }}
-              >
-                <span>Search: {searchQuery}</span>
+        {/* Search and filters */}
+        <div style={styles.filterSection}>
+          <div style={styles.filterBar}>
+            {/* Search input */}
+            <div style={styles.searchWrapper}>
+              <div style={styles.searchIcon}>🔍</div>
+              <input
+                placeholder="Search events..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={styles.searchInput}
+                aria-label="Search events"
+              />
+              {searchQuery && (
                 <button
                   onClick={() => setSearchQuery("")}
                   style={{
-                    marginLeft: "0.5rem",
+                    position: "absolute",
+                    right: "12px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
                     background: "none",
                     border: "none",
                     cursor: "pointer",
+                    color: "#9ca3af",
+                    display: "flex",
+                    alignItems: "center",
                   }}
-                  aria-label="Remove search filter"
+                  aria-label="Clear search"
                 >
                   ✕
                 </button>
-              </div>
-            )}
+              )}
+            </div>
 
-            {categoryFilter !== "all" && (
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  backgroundColor: "rgba(99, 102, 241, 0.1)",
-                  borderRadius: "20px",
-                  padding: "0.3rem 0.75rem",
-                  fontSize: "0.875rem",
-                  color: colors.primary,
-                  height: "28px",
-                }}
-              >
-                <span>
-                  {getEmoji(categoryFilter)} {categoryFilter}
-                </span>
-                <button
-                  onClick={() => setCategoryFilter("all")}
-                  style={{
-                    marginLeft: "0.5rem",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                  }}
-                  aria-label="Remove category filter"
-                >
-                  ✕
-                </button>
-              </div>
-            )}
-
-            {sortBy !== "date" && (
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  backgroundColor: "rgba(99, 102, 241, 0.1)",
-                  borderRadius: "20px",
-                  padding: "0.3rem 0.75rem",
-                  fontSize: "0.875rem",
-                  color: colors.primary,
-                  height: "28px",
-                }}
-              >
-                <span>
-                  Sort:{" "}
-                  {sortBy === "price-asc"
-                    ? "Price (Low to High)"
-                    : "Price (High to Low)"}
-                </span>
-                <button
-                  onClick={() => setSortBy("date")}
-                  style={{
-                    marginLeft: "0.5rem",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                  }}
-                  aria-label="Remove sort filter"
-                >
-                  ✕
-                </button>
-              </div>
-            )}
-
+            {/* Filters button */}
             <button
-              onClick={handleResetFilters}
-              style={{
-                color: colors.primary,
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                fontSize: "0.85rem",
-                fontWeight: "500",
-                textDecoration: "underline",
-              }}
+              onClick={() => setShowFilters(!showFilters)}
+              style={styles.filterButton}
+              aria-expanded={showFilters}
             >
-              Clear all
+              <span>🔍</span>
+              {showFilters ? "Hide Filters" : "Show Filters"}
             </button>
           </div>
-        )}
-      </div>
 
-      {/* Results summary */}
-      {!loading && !error && filteredEvents.length > 0 && (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            marginBottom: "1rem",
-            color: colors.textSecondary,
-            fontSize: "0.875rem",
-          }}
-        >
-          <p>
-            Showing <strong>{currentEvents.length}</strong> of{" "}
-            <strong>{filteredEvents.length}</strong> events
-          </p>
-          {filteredEvents.length > eventsPerPage && (
-            <p>
-              Page {page} of {Math.ceil(filteredEvents.length / eventsPerPage)}
-            </p>
-          )}
-        </div>
-      )}
-
-      {/* Error message */}
-      {error && (
-        <div
-          style={{
-            padding: "1rem",
-            backgroundColor: colors.errorLight,
-            borderRadius: "8px",
-            marginBottom: "1.5rem",
-            color: colors.error,
-            display: "flex",
-            alignItems: "center",
-            borderLeft: `4px solid ${colors.error}`,
-          }}
-          role="alert"
-        >
-          <span style={{ marginRight: "0.75rem", fontSize: "1.25rem" }}>
-            ⚠️
-          </span>
-          <div style={{ flex: 1 }}>{error}</div>
-          <button
-            onClick={() => window.location.reload()}
-            style={{
-              marginLeft: "1rem",
-              color: colors.error,
-              backgroundColor: "white",
-              border: `1px solid ${colors.error}`,
-              borderRadius: "4px",
-              padding: "0.25rem 0.75rem",
-            }}
-          >
-            Retry
-          </button>
-        </div>
-      )}
-
-      {/* Content area */}
-      {loading ? (
-        // Loading skeleton
-        <div style={styles.eventGrid}>
-          {Array(8)
-            .fill()
-            .map((_, i) => (
-              <div
-                key={i}
-                style={{
-                  height: "320px",
-                  backgroundColor: colors.cardBg,
-                  borderRadius: "8px",
-                  overflow: "hidden",
-                  boxShadow: `0 1px 3px ${colors.shadow}`,
-                  animation: "pulse 1.5s infinite ease-in-out",
-                }}
-              >
-                <div
-                  style={{ height: "160px", backgroundColor: "#e5e7eb" }}
-                ></div>
-                <div style={{ padding: "1rem" }}>
-                  <div
-                    style={{
-                      width: "40%",
-                      height: "20px",
-                      backgroundColor: "#e5e7eb",
-                      marginBottom: "0.75rem",
-                      borderRadius: "4px",
-                    }}
-                  ></div>
-                  <div
-                    style={{
-                      width: "80%",
-                      height: "24px",
-                      backgroundColor: "#e5e7eb",
-                      marginBottom: "1rem",
-                      borderRadius: "4px",
-                    }}
-                  ></div>
-                  <div
+          {/* Filter panel */}
+          <div id="filter-panel" style={styles.filterPanel}>
+            <div style={styles.filterGrid}>
+              {/* Category filter */}
+              <div>
+                <label
+                  style={{
+                    display: "block",
+                    fontSize: "0.875rem",
+                    fontWeight: "500",
+                    marginBottom: "0.5rem",
+                    color: colors.text,
+                  }}
+                  htmlFor="category-filter"
+                >
+                  Category
+                </label>
+                <div style={{ position: "relative" }}>
+                  <select
+                    id="category-filter"
+                    value={categoryFilter}
+                    onChange={(e) => setCategoryFilter(e.target.value)}
                     style={{
                       width: "100%",
-                      height: "14px",
-                      backgroundColor: "#e5e7eb",
-                      marginBottom: "0.75rem",
-                      borderRadius: "4px",
+                      height: "40px",
+                      paddingLeft: "0.75rem",
+                      paddingRight: "2rem",
+                      border: `1px solid ${colors.border}`,
+                      borderRadius: "6px",
+                      backgroundColor: "white",
+                      appearance: "none",
+                      cursor: "pointer",
+                      fontSize: "0.95rem",
                     }}
-                  ></div>
+                  >
+                    <option value="all">All Categories</option>
+                    {categories
+                      .filter((cat) => cat !== "all")
+                      .map((cat) => (
+                        <option key={cat} value={cat}>
+                          {getEmoji(cat)} {cat}
+                        </option>
+                      ))}
+                  </select>
+                  <div
+                    style={{
+                      position: "absolute",
+                      right: "0.75rem",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      pointerEvents: "none",
+                    }}
+                  >
+                    ▼
+                  </div>
                 </div>
               </div>
-            ))}
-          <style>{`
-            @keyframes pulse {
-              0%, 100% { opacity: 1; }
-              50% { opacity: 0.8; }
-            }
-          `}</style>
-        </div>
-      ) : currentEvents.length > 0 ? (
-        // Event list
-        <>
-          <div style={styles.eventGrid}>
-            {currentEvents.map((event) => (
-              <div
-                key={event._id || event.id}
-                style={styles.eventCard}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.transform = "translateY(-2px)";
-                  e.currentTarget.style.boxShadow = `0 8px 16px ${colors.shadow}`;
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.boxShadow = `0 1px 3px ${colors.shadow}`;
-                }}
-              >
+
+              {/* Sort by filter */}
+              <div>
+                <label
+                  style={{
+                    display: "block",
+                    fontSize: "0.875rem",
+                    fontWeight: "500",
+                    marginBottom: "0.5rem",
+                    color: colors.text,
+                  }}
+                  htmlFor="sort-filter"
+                >
+                  Sort By
+                </label>
                 <div style={{ position: "relative" }}>
-                  <img
-                    src={
-                      event.image ||
-                      `https://source.unsplash.com/random?${
-                        event.category || "event"
-                      }`
-                    }
-                    alt={event.title || "Event"}
+                  <select
+                    id="sort-filter"
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
                     style={{
                       width: "100%",
-                      height: "160px",
-                      objectFit: "cover",
+                      height: "40px",
+                      paddingLeft: "0.75rem",
+                      paddingRight: "2rem",
+                      border: `1px solid ${colors.border}`,
+                      borderRadius: "6px",
+                      backgroundColor: "white",
+                      appearance: "none",
+                      fontSize: "0.95rem",
                     }}
-                    loading="lazy"
-                  />
-                  {event.date && (
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: "10px",
-                        right: "10px",
-                        backgroundColor: "rgba(255,255,255,0.9)",
-                        padding: "0.25rem 0.5rem",
-                        borderRadius: "4px",
-                        fontWeight: "bold",
-                        fontSize: "0.75rem",
-                      }}
-                    >
-                      {new Date(event.date).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                      })}
-                    </div>
-                  )}
+                  >
+                    <option value="date">Date: Upcoming First</option>
+                    <option value="price-asc">Price: Low to High</option>
+                    <option value="price-desc">Price: High to Low</option>
+                  </select>
+                  <div
+                    style={{
+                      position: "absolute",
+                      right: "0.75rem",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      pointerEvents: "none",
+                    }}
+                  >
+                    ▼
+                  </div>
                 </div>
+              </div>
 
-                <div
+              {/* Filter Actions */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "flex-end",
+                  gap: "0.75rem",
+                }}
+              >
+                <button
+                  onClick={handleResetFilters}
                   style={{
-                    padding: "1rem",
                     flex: 1,
-                    display: "flex",
-                    flexDirection: "column",
+                    height: "40px",
+                    padding: "0.65rem",
+                    backgroundColor: "white",
+                    border: `1px solid ${colors.border}`,
+                    borderRadius: "6px",
+                    color: colors.text,
+                    fontSize: "0.875rem",
+                    cursor: "pointer",
+                    fontWeight: "500",
                   }}
                 >
-                  <div
-                    style={{
-                      display: "inline-block",
-                      padding: "0.2rem 0.6rem",
-                      backgroundColor: "rgba(99, 102, 241, 0.1)",
-                      color: colors.primary,
-                      borderRadius: "20px",
-                      fontSize: "0.75rem",
-                      marginBottom: "0.75rem",
-                    }}
-                  >
-                    {getEmoji(event.category)} {event.category || "Event"}
-                  </div>
-
-                  <h3
-                    style={{
-                      fontSize: "1.1rem",
-                      fontWeight: "600",
-                      marginBottom: "0.5rem",
-                      color: colors.text,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      display: "-webkit-box",
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: "vertical",
-                      lineHeight: "1.3",
-                      height: "2.6rem",
-                    }}
-                    title={event.title}
-                  >
-                    {event.title || "Untitled Event"}
-                  </h3>
-
-                  <div style={{ marginBottom: "0.75rem", flex: "1 0 auto" }}>
-                    <p
-                      style={{
-                        fontSize: "0.85rem",
-                        color: colors.textSecondary,
-                        margin: "0.2rem 0",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.3rem",
-                      }}
-                    >
-                      <span>📅</span>
-                      <span>{formatDate(event.date)}</span>
-                    </p>
-                    <p
-                      style={{
-                        fontSize: "0.85rem",
-                        color: colors.textSecondary,
-                        margin: "0.2rem 0",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.3rem",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                      title={event.location}
-                    >
-                      <span>📍</span>
-                      <span>{event.location || "TBD"}</span>
-                    </p>
-                  </div>
-
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      marginTop: "auto",
-                      paddingTop: "0.75rem",
-                      borderTop: `1px solid ${colors.border}`,
-                    }}
-                  >
-                    <span style={{ fontWeight: "bold", color: colors.primary }}>
-                      {event.ticketPrice ? `$${event.ticketPrice}` : "Free"}
-                    </span>
-                    <Link
-                      to={`/events/${event._id || event.id}`}
-                      style={{
-                        backgroundColor: colors.primary,
-                        color: "white",
-                        padding: "0.5rem 1rem",
-                        borderRadius: "6px",
-                        textDecoration: "none",
-                        fontSize: "0.85rem",
-                        fontWeight: "500",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        height: "32px",
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      View Details
-                    </Link>
-                  </div>
-                </div>
+                  Reset All
+                </button>
+                <button
+                  onClick={() => isMobile && setShowFilters(false)}
+                  style={{
+                    flex: 1,
+                    height: "40px",
+                    padding: "0.65rem",
+                    backgroundColor: colors.primary,
+                    border: "none",
+                    borderRadius: "6px",
+                    color: "white",
+                    fontSize: "0.875rem",
+                    cursor: "pointer",
+                    fontWeight: "500",
+                  }}
+                >
+                  Apply Filters
+                </button>
               </div>
-            ))}
+            </div>
           </div>
 
-          {/* Simple pagination */}
-          {filteredEvents.length > eventsPerPage && (
-            <div style={styles.pagination} role="navigation">
-              <button
-                onClick={() => page > 1 && setPage(page - 1)}
-                disabled={page === 1}
-                style={{
-                  padding: "0.5rem 0.75rem",
-                  backgroundColor: colors.cardBg,
-                  border: `1px solid ${colors.border}`,
-                  borderRadius: "6px",
-                  color: page === 1 ? colors.disabled : colors.text,
-                  cursor: page === 1 ? "not-allowed" : "pointer",
-                }}
+          {/* Active filters */}
+          {(searchQuery || categoryFilter !== "all" || sortBy !== "date") && (
+            <div
+              style={{
+                marginTop: "1rem",
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "0.5rem",
+                alignItems: "center",
+              }}
+            >
+              <span
+                style={{ fontSize: "0.85rem", color: colors.textSecondary }}
               >
-                ◄
-              </button>
+                Active filters:
+              </span>
 
-              {Array.from({
-                length: Math.min(
-                  5,
-                  Math.ceil(filteredEvents.length / eventsPerPage)
-                ),
-              }).map((_, i) => {
-                const pageNum = i + 1;
-                return (
+              {searchQuery && (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    backgroundColor: "rgba(99, 102, 241, 0.1)",
+                    borderRadius: "20px",
+                    padding: "0.3rem 0.75rem",
+                    fontSize: "0.875rem",
+                    color: colors.primary,
+                    height: "28px",
+                  }}
+                >
+                  <span>Search: {searchQuery}</span>
                   <button
-                    key={i}
-                    onClick={() => setPage(pageNum)}
+                    onClick={() => setSearchQuery("")}
                     style={{
-                      padding: "0.5rem 0.75rem",
-                      backgroundColor:
-                        page === pageNum ? colors.primary : colors.cardBg,
-                      border: `1px solid ${
-                        page === pageNum ? colors.primary : colors.border
-                      }`,
-                      borderRadius: "6px",
-                      color: page === pageNum ? "white" : colors.text,
-                      fontWeight: page === pageNum ? "600" : "normal",
+                      marginLeft: "0.5rem",
+                      background: "none",
+                      border: "none",
                       cursor: "pointer",
                     }}
+                    aria-label="Remove search filter"
                   >
-                    {pageNum}
+                    ✕
                   </button>
-                );
-              })}
+                </div>
+              )}
+
+              {categoryFilter !== "all" && (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    backgroundColor: "rgba(99, 102, 241, 0.1)",
+                    borderRadius: "20px",
+                    padding: "0.3rem 0.75rem",
+                    fontSize: "0.875rem",
+                    color: colors.primary,
+                    height: "28px",
+                  }}
+                >
+                  <span>
+                    {getEmoji(categoryFilter)} {categoryFilter}
+                  </span>
+                  <button
+                    onClick={() => setCategoryFilter("all")}
+                    style={{
+                      marginLeft: "0.5rem",
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                    }}
+                    aria-label="Remove category filter"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+
+              {sortBy !== "date" && (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    backgroundColor: "rgba(99, 102, 241, 0.1)",
+                    borderRadius: "20px",
+                    padding: "0.3rem 0.75rem",
+                    fontSize: "0.875rem",
+                    color: colors.primary,
+                    height: "28px",
+                  }}
+                >
+                  <span>
+                    Sort:{" "}
+                    {sortBy === "price-asc"
+                      ? "Price (Low to High)"
+                      : "Price (High to Low)"}
+                  </span>
+                  <button
+                    onClick={() => setSortBy("date")}
+                    style={{
+                      marginLeft: "0.5rem",
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                    }}
+                    aria-label="Remove sort filter"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
 
               <button
-                onClick={() =>
-                  page < Math.ceil(filteredEvents.length / eventsPerPage) &&
-                  setPage(page + 1)
-                }
-                disabled={
-                  page === Math.ceil(filteredEvents.length / eventsPerPage)
-                }
+                onClick={handleResetFilters}
                 style={{
-                  padding: "0.5rem 0.75rem",
-                  backgroundColor: colors.cardBg,
-                  border: `1px solid ${colors.border}`,
-                  borderRadius: "6px",
-                  color:
-                    page === Math.ceil(filteredEvents.length / eventsPerPage)
-                      ? colors.disabled
-                      : colors.text,
-                  cursor:
-                    page === Math.ceil(filteredEvents.length / eventsPerPage)
-                      ? "not-allowed"
-                      : "pointer",
+                  color: colors.primary,
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  fontSize: "0.85rem",
+                  fontWeight: "500",
+                  textDecoration: "underline",
                 }}
               >
-                ►
+                Clear all
               </button>
             </div>
           )}
-        </>
-      ) : (
-        // No events found
-        <div style={styles.emptyState}>
-          <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>📅</div>
-          <h3
-            style={{
-              fontSize: "1.5rem",
-              marginBottom: "1rem",
-              fontWeight: "600",
-            }}
-          >
-            No events found
-          </h3>
-          <p
-            style={{
-              color: colors.textSecondary,
-              margin: "0 auto 2rem",
-              maxWidth: "500px",
-            }}
-          >
-            We couldn't find any events matching your search criteria. Try
-            adjusting your filters or try a different search term.
-          </p>
-          <button onClick={handleResetFilters} style={styles.resetButton}>
-            Reset All Filters
-          </button>
         </div>
-      )}
-    </div>
+
+        {/* Results summary */}
+        {!loading && !error && filteredEvents.length > 0 && (
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              marginBottom: "1rem",
+              color: colors.textSecondary,
+              fontSize: "0.875rem",
+            }}
+          >
+            <p>
+              Showing <strong>{currentEvents.length}</strong> of{" "}
+              <strong>{filteredEvents.length}</strong> events
+            </p>
+            {filteredEvents.length > eventsPerPage && (
+              <p>
+                Page {page} of{" "}
+                {Math.ceil(filteredEvents.length / eventsPerPage)}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Error message */}
+        {error && (
+          <div
+            style={{
+              padding: "1rem",
+              backgroundColor: colors.errorLight,
+              borderRadius: "8px",
+              marginBottom: "1.5rem",
+              color: colors.error,
+              display: "flex",
+              alignItems: "center",
+              borderLeft: `4px solid ${colors.error}`,
+            }}
+            role="alert"
+          >
+            <span style={{ marginRight: "0.75rem", fontSize: "1.25rem" }}>
+              ⚠️
+            </span>
+            <div style={{ flex: 1 }}>{error}</div>
+            <button
+              onClick={() => {
+                window.location.reload();
+                setToast({
+                  visible: true,
+                  message: "Refreshing events...",
+                  type: "info",
+                });
+              }}
+              style={{
+                marginLeft: "1rem",
+                color: colors.error,
+                backgroundColor: "white",
+                border: `1px solid ${colors.error}`,
+                borderRadius: "4px",
+                padding: "0.25rem 0.75rem",
+              }}
+            >
+              Retry
+            </button>
+          </div>
+        )}
+
+        {/* Content area */}
+        <div style={styles.mainContent}>
+          {loading ? (
+            <Loader />
+          ) : currentEvents.length > 0 ? (
+            <>
+              {/* Event grid - Now using EventCard component */}
+              <div style={styles.eventGrid}>
+                {currentEvents.map((event) => (
+                  <div key={event._id || event.id}>
+                    <EventCard
+                      event={{
+                        ...event,
+                        _id: event._id || event.id, // Ensure _id is available
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+
+              {/* Simple pagination */}
+              {filteredEvents.length > eventsPerPage && (
+                <div style={styles.pagination} role="navigation">
+                  <button
+                    onClick={() => page > 1 && setPage(page - 1)}
+                    disabled={page === 1}
+                    style={{
+                      padding: "0.5rem 0.75rem",
+                      backgroundColor: colors.cardBg,
+                      border: `1px solid ${colors.border}`,
+                      borderRadius: "6px",
+                      color: page === 1 ? colors.disabled : colors.text,
+                      cursor: page === 1 ? "not-allowed" : "pointer",
+                    }}
+                  >
+                    ◄
+                  </button>
+
+                  {Array.from({
+                    length: Math.min(
+                      5,
+                      Math.ceil(filteredEvents.length / eventsPerPage)
+                    ),
+                  }).map((_, i) => {
+                    const pageNum = i + 1;
+                    return (
+                      <button
+                        key={i}
+                        onClick={() => setPage(pageNum)}
+                        style={{
+                          padding: "0.5rem 0.75rem",
+                          backgroundColor:
+                            page === pageNum ? colors.primary : colors.cardBg,
+                          border: `1px solid ${
+                            page === pageNum ? colors.primary : colors.border
+                          }`,
+                          borderRadius: "6px",
+                          color: page === pageNum ? "white" : colors.text,
+                          fontWeight: page === pageNum ? "600" : "normal",
+                          cursor: "pointer",
+                        }}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+
+                  <button
+                    onClick={() =>
+                      page < Math.ceil(filteredEvents.length / eventsPerPage) &&
+                      setPage(page + 1)
+                    }
+                    disabled={
+                      page === Math.ceil(filteredEvents.length / eventsPerPage)
+                    }
+                    style={{
+                      padding: "0.5rem 0.75rem",
+                      backgroundColor: colors.cardBg,
+                      border: `1px solid ${colors.border}`,
+                      borderRadius: "6px",
+                      color:
+                        page ===
+                        Math.ceil(filteredEvents.length / eventsPerPage)
+                          ? colors.disabled
+                          : colors.text,
+                      cursor:
+                        page ===
+                        Math.ceil(filteredEvents.length / eventsPerPage)
+                          ? "not-allowed"
+                          : "pointer",
+                    }}
+                  >
+                    ►
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            // No events found
+            <div style={styles.emptyState}>
+              <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>📅</div>
+              <h3
+                style={{
+                  fontSize: "1.5rem",
+                  marginBottom: "1rem",
+                  fontWeight: "600",
+                }}
+              >
+                No events found
+              </h3>
+              <p
+                style={{
+                  color: colors.textSecondary,
+                  margin: "0 auto 2rem",
+                  maxWidth: "500px",
+                }}
+              >
+                We couldn't find any events matching your search criteria. Try
+                adjusting your filters or try a different search term.
+              </p>
+              <button onClick={handleResetFilters} style={styles.resetButton}>
+                Reset All Filters
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <Footer />
+    </>
   );
 };
 

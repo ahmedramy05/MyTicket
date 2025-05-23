@@ -18,7 +18,8 @@ import LoginForm from "./components/auth/LoginForm";
 import RegisterForm from "./components/auth/RegisterForm";
 
 // Event Components
-import EventList from "./components/events/EventList"; // Import EventList component
+import EventList from "./components/events/EventList";
+import EventDetails from "./components/events/EventDetails"; // Import EventDetails component
 
 // Loading component
 const LoadingSpinner = () => (
@@ -120,10 +121,15 @@ function App() {
                 element={<RegisterForm showToast={showToast} />}
               />
 
-              {/* Events Routes - Now using the real component instead of placeholder */}
+              {/* Events Routes */}
               <Route
                 path="/events"
                 element={<EventList showToast={showToast} />}
+              />
+              {/* Add Event Details route with ID parameter */}
+              <Route
+                path="/events/:id"
+                element={<EventDetails showToast={showToast} />}
               />
 
               {/* Basic informational pages */}
