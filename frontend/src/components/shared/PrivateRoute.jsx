@@ -26,8 +26,8 @@ export default function PrivateRoute({ children, allowedRoles = [] }) {
 
   // If allowedRoles is provided and not empty, check if user's role is allowed
   if (allowedRoles.length > 0 && !allowedRoles.includes(user?.role)) {
-    // Redirect to home if user doesn't have the required role
-    return <Navigate to="/" replace />;
+    // Redirect to unauthorized page if user doesn't have the required role
+    return <Navigate to="/unauthorized" replace />;
   }
 
   // User is authenticated (and authorized if roles were specified)
