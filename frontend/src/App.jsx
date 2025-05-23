@@ -22,7 +22,11 @@ import EventList from "./components/events/EventList";
 import EventDetails from "./components/events/EventDetails";
 import MyEventsPage from "./components/events/MyEventsPage";
 import EventForm from "./components/events/EventForm";
-import EventAnalytics from "./components/events/EventAnalytics"; // Add this import
+import EventAnalytics from "./components/events/EventAnalytics"; 
+
+// Admin Components
+import AdminEventsPage from "./components/admin/AdminEventsPage";
+import AdminUsersPage from "./components/admin/AdminUsersPage"; 
 
 // Profile and Route Protection
 import ProfilePage from "./components/user/ProfilePage";
@@ -182,7 +186,6 @@ function App() {
                   </PrivateRoute>
                 }
               />
-              {/* Add the new analytics route */}
               <Route
                 path="/my-events/analytics"
                 element={
@@ -192,15 +195,24 @@ function App() {
                 }
               />
 
-              {/* Uncomment and implement BookingDetails if you have it */}
-              {/* <Route
-                path="/bookings/:id"
+              {/* Admin Routes - Protected */}
+              <Route
+                path="/admin/events"
                 element={
-                  <PrivateRoute>
-                    <BookingDetails showToast={showToast} />
+                  <PrivateRoute allowedRoles={["System Admin"]}>
+                    <AdminEventsPage showToast={showToast} />
                   </PrivateRoute>
                 }
-              /> */}
+              />
+
+              <Route
+                path="/admin/users"
+                element={
+                  <PrivateRoute allowedRoles={["System Admin"]}>
+                    <AdminUsersPage showToast={showToast} />
+                  </PrivateRoute>
+              }
+              />
 
               {/* User Profile Route - Protected */}
               <Route
