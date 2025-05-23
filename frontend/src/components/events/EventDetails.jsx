@@ -12,6 +12,8 @@ const EventDetails = ({ showToast }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showBookForm, setShowBookForm] = useState(false);
+  const [ticketQuantity, setTicketQuantity] = useState(1);
+  const [bookingLoading, setBookingLoading] = useState(false);
   const { user } = useContext(AuthContext);
 
   // Theme colors for consistent styling
@@ -46,6 +48,221 @@ const EventDetails = ({ showToast }) => {
 
     fetchEventDetails();
   }, [id]);
+
+  // Handle booking tickets
+  const handleBookTickets = async () => {
+    if (!user || !event) return;
+
+    try {
+      setBookingLoading(true);
+
+      const response = await api.post("/bookings", {
+        eventId: event._id,
+        tickets: ticketQuantity,
+      });
+
+      // Update local event data to reflect the new ticket count
+      const updatedEvent = { ...event };
+      updatedEvent.bookedTickets = (event.bookedTickets || 0) + ticketQuantity;
+      setEvent(updatedEvent);
+
+      // Close form and show success message
+      setShowBookForm(false);
+      showToast(
+        `Successfully booked ${ticketQuantity} ticket${
+          ticketQuantity > 1 ? "s" : ""
+        }!`,
+        "success"
+      );
+    } catch (err) {
+      console.error("Error booking tickets:", err);
+      showToast(
+        err.response?.data?.error ||
+          "Failed to book tickets. Please try again.",
+        "error"
+      );
+    } finally {
+      setBookingLoading(false);
+    }
+  };
+
+  // Render ticket quantity selector modal
+  const renderBookingModal = () => {
+    // Calculate maximum tickets a user can book (either available tickets or a limit of 10)
+    const maxTickets = Math.min(availableTickets, 10);
+
+    return (
+      <div
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: "rgba(0,0,0,0.5)",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          zIndex: 1000,
+        }}
+      >
+        <div
+          style={{
+            backgroundColor: colors.background,
+            borderRadius: "8px",
+            padding: "24px",
+            width: "90%",
+            maxWidth: "400px",
+            boxShadow: `0 4px 12px ${colors.shadow}`,
+          }}
+        >
+          <h3
+            style={{
+              fontSize: "18px",
+              fontWeight: "600",
+              marginBottom: "16px",
+              color: colors.text,
+            }}
+          >
+            Book Tickets
+          </h3>
+
+          <div style={{ marginBottom: "20px" }}>
+            <label
+              htmlFor="ticketQuantity"
+              style={{
+                display: "block",
+                marginBottom: "8px",
+                fontSize: "14px",
+                color: colors.textSecondary,
+              }}
+            >
+              How many tickets would you like to book?
+            </label>
+
+            <select
+              id="ticketQuantity"
+              value={ticketQuantity}
+              onChange={(e) => setTicketQuantity(Number(e.target.value))}
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: "6px",
+                border: `1px solid ${colors.border}`,
+                fontSize: "16px",
+                color: colors.text,
+                backgroundColor: colors.background,
+                appearance: "none",
+              }}
+            >
+              {[...Array(maxTickets)].map((_, i) => (
+                <option key={i + 1} value={i + 1}>
+                  {i + 1}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div
+            style={{
+              padding: "12px 0",
+              borderTop: `1px solid ${colors.border}`,
+              borderBottom: `1px solid ${colors.border}`,
+              marginBottom: "20px",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                marginBottom: "8px",
+              }}
+            >
+              <span style={{ color: colors.textSecondary }}>Ticket price:</span>
+              <span style={{ color: colors.text, fontWeight: "500" }}>
+                ${event.ticketPrice}
+              </span>
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+              }}
+            >
+              <span style={{ color: colors.textSecondary }}>Total price:</span>
+              <span style={{ color: colors.text, fontWeight: "600" }}>
+                ${(event.ticketPrice * ticketQuantity).toFixed(2)}
+              </span>
+            </div>
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+            }}
+          >
+            <button
+              onClick={() => setShowBookForm(false)}
+              disabled={bookingLoading}
+              style={{
+                padding: "10px 16px",
+                backgroundColor: "transparent",
+                border: `1px solid ${colors.border}`,
+                borderRadius: "6px",
+                color: colors.text,
+                fontSize: "14px",
+                fontWeight: "500",
+                cursor: "pointer",
+              }}
+            >
+              Cancel
+            </button>
+
+            <button
+              onClick={handleBookTickets}
+              disabled={bookingLoading}
+              style={{
+                padding: "10px 20px",
+                backgroundColor: colors.primary,
+                border: "none",
+                borderRadius: "6px",
+                color: "white",
+                fontSize: "14px",
+                fontWeight: "500",
+                cursor: bookingLoading ? "not-allowed" : "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              {bookingLoading ? (
+                <>
+                  <div
+                    style={{
+                      width: "18px",
+                      height: "18px",
+                      border: "2px solid rgba(255,255,255,0.2)",
+                      borderTopColor: "white",
+                      borderRadius: "50%",
+                      animation: "spin 1s linear infinite",
+                      marginRight: "8px",
+                    }}
+                  ></div>
+                  Processing...
+                </>
+              ) : (
+                `Book ${
+                  ticketQuantity > 1 ? ticketQuantity + " tickets" : "1 ticket"
+                }`
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   if (loading) {
     return (
@@ -460,9 +677,7 @@ const EventDetails = ({ showToast }) => {
                 {/* Booking button or login prompt */}
                 {user ? (
                   <button
-                    onClick={() =>
-                      showToast("Booking functionality coming soon!", "info")
-                    }
+                    onClick={() => setShowBookForm(true)}
                     disabled={!isAvailable}
                     style={{
                       width: "100%",
@@ -525,6 +740,9 @@ const EventDetails = ({ showToast }) => {
           </div>
         </div>
       </div>
+
+      {/* Booking Modal */}
+      {showBookForm && renderBookingModal()}
 
       <Footer />
     </>
