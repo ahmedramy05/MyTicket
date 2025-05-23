@@ -21,7 +21,7 @@ router.get("/profile", authenticate, getUserProfile);
 router.put("/profile", authenticate, updateUserProfile);
 router.get("/bookings", authenticate, getUserBookings);
 router.get("/events", authenticate, authorize("Organizer"), getUserEvents);
-router.get("/events/analytics", authenticate, authorize("Organizer"), getUserEvents);
+router.get("/events/analytics", authenticate, authorize("Organizer"), getUserAnalytics); // Get user analytics (organizer)
 router.get("/:id", authenticate, authorize("System Admin"), getUserById);
 router.put("/:id", authenticate, authorize("System Admin"), updateUserRole); // Update user role (admin)
 router.delete("/:id", authenticate, authorize("System Admin"), deleteUser); // Delete user (admin)
