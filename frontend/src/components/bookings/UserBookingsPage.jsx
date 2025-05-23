@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { bookingService } from '../../services/api';
-import Loader from '../shared/Loader';
-import { toast } from 'react-toastify';
+import api from '../../services/api';
+import Navbar from '../shared/Navbar';
+import Footer from '../shared/Footer';
+import EventCard from '../events/EventCard';
 
-const UserBookingsPage = () => {
+const UserBookingsPage = ({ showToast }) => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -15,10 +16,11 @@ const UserBookingsPage = () => {
   const fetchBookings = async () => {
     try {
       setLoading(true);
-      const response = await bookingService.getUserBookings();
-      setBookings(response.data);
+      const response = await api.get('/users/bookings');
+      setBookings(response.data.data);
     } catch (error) {
-      toast.error('Failed to load bookings');
+      console.error('Failed to load bookings:', error);
+      showToast('Failed to load bookings', 'error');
     } finally {
       setLoading(false);
     }
@@ -27,84 +29,105 @@ const UserBookingsPage = () => {
   const handleCancelBooking = async (bookingId) => {
     if (window.confirm('Are you sure you want to cancel this booking?')) {
       try {
-        await bookingService.cancelBooking(bookingId);
-        toast.success('Booking cancelled successfully');
+        await api.delete(`/bookings/${bookingId}`);
+        showToast('Booking cancelled successfully', 'success');
         // Update the booking status in the state
         setBookings(
           bookings.map((booking) =>
-            booking._id === bookingId ? { ...booking, status: 'cancelled' } : booking
+            booking._id === bookingId ? { ...booking, status: 'Canceled' } : booking
           )
         );
       } catch (error) {
-        toast.error('Failed to cancel booking');
+        console.error('Failed to cancel booking:', error);
+        showToast('Failed to cancel booking', 'error');
       }
     }
   };
 
-  if (loading) return <Loader />;
-
-  if (bookings.length === 0) {
-    return (
-      <div className="container mt-4">
-        <h2>My Bookings</h2>
-        <div className="alert alert-info">
-          You don't have any bookings yet. <Link to="/">Browse events</Link> to book tickets.
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="container mt-4">
-      <h2>My Bookings</h2>
-      <div className="row">
-        {bookings.map((booking) => (
-          <div key={booking._id} className="col-md-6 mb-4">
-            <div className="card">
-              <div className="card-header d-flex justify-content-between align-items-center">
-                <span>Booking #{booking._id.substring(0, 8)}</span>
-                {booking.status === 'confirmed' ? (
-                  <span className="badge bg-success">Confirmed</span>
-                ) : (
-                  <span className="badge bg-danger">Cancelled</span>
-                )}
-              </div>
-              <div className="card-body">
-                <h5 className="card-title">{booking.event.title}</h5>
-                <p className="card-text">
-                  <strong>Date:</strong> {new Date(booking.event.date).toLocaleDateString()}
-                </p>
-                <p className="card-text">
-                  <strong>Location:</strong> {booking.event.location}
-                </p>
-                <p className="card-text">
-                  <strong>Tickets:</strong> {booking.quantity}
-                </p>
-                <p className="card-text">
-                  <strong>Total Price:</strong> ${booking.totalPrice.toFixed(2)}
-                </p>
-                <p className="card-text">
-                  <strong>Booked on:</strong> {new Date(booking.createdAt).toLocaleDateString()}
-                </p>
-                <div className="d-flex justify-content-between mt-3">
-                  <Link to={`/events/${booking.event._id}`} className="btn btn-primary">
-                    View Event
-                  </Link>
-                  {booking.status === 'confirmed' && (
-                    <button
-                      className="btn btn-danger"
-                      onClick={() => handleCancelBooking(booking._id)}
-                    >
-                      Cancel Booking
-                    </button>
-                  )}
+    <>
+      <Navbar />
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 1rem', minHeight: '80vh' }}>
+        <h2>My Bookings</h2>
+        
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '2rem' }}>Loading your bookings...</div>
+        ) : bookings.length === 0 ? (
+          <div style={{ padding: '2rem', backgroundColor: '#f8f9fa', borderRadius: '8px', textAlign: 'center' }}>
+            <p>You don't have any bookings yet.</p>
+            <Link 
+              to="/events" 
+              style={{ 
+                display: 'inline-block', 
+                marginTop: '1rem',
+                padding: '0.5rem 1rem',
+                backgroundColor: '#ff4d4d',
+                color: 'white',
+                textDecoration: 'none',
+                borderRadius: '4px'
+              }}
+            >
+              Browse Events
+            </Link>
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
+            {bookings.map((booking) => (
+              <div key={booking._id} style={{ border: '1px solid #e0e0e0', borderRadius: '8px', overflow: 'hidden' }}>
+                <div style={{ padding: '1rem', backgroundColor: '#f8f9fa', borderBottom: '1px solid #e0e0e0' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>Booking #{booking._id.substring(0, 8)}</span>
+                    <span style={{ 
+                      padding: '0.25rem 0.5rem', 
+                      borderRadius: '4px', 
+                      backgroundColor: booking.status === 'Confirmed' ? '#d1e7dd' : '#f8d7da',
+                      color: booking.status === 'Confirmed' ? '#0f5132' : '#842029',
+                      fontSize: '0.875rem'
+                    }}>
+                      {booking.status}
+                    </span>
+                  </div>
+                </div>
+                <div style={{ padding: '1rem' }}>
+                  <h4>{booking.eventId?.title}</h4>
+                  <p><strong>Date:</strong> {new Date(booking.eventId?.date).toLocaleString()}</p>
+                  <p><strong>Location:</strong> {booking.eventId?.location}</p>
+                  <p><strong>Tickets:</strong> {booking.numberOfTickets}</p>
+                  <p><strong>Total Price:</strong> ${booking.totalPrice.toFixed(2)}</p>
+                  
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem' }}>
+                    <Link to={`/events/${booking.eventId?._id}`} style={{ 
+                      padding: '0.5rem 0.75rem', 
+                      backgroundColor: '#6366f1', 
+                      color: 'white', 
+                      textDecoration: 'none',
+                      borderRadius: '4px',
+                      fontSize: '0.875rem'
+                    }}>
+                      View Event
+                    </Link>
+                    {booking.status === 'Confirmed' && (
+                      <button onClick={() => handleCancelBooking(booking._id)} style={{
+                        padding: '0.5rem 0.75rem',
+                        backgroundColor: 'transparent',
+                        border: '1px solid #ef4444',
+                        color: '#ef4444',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '0.875rem'
+                      }}>
+                        Cancel Booking
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
+            ))}
           </div>
-        ))}
+        )}
       </div>
-    </div>
+      <Footer />
+    </>
   );
 };
 

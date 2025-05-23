@@ -80,7 +80,7 @@ export default function Toast({
       justifyContent: "space-between",
       minWidth: "280px",
       maxWidth: "450px",
-      zIndex: 1000,
+      zIndex: 2001, // Increased z-index to be above navbar
       transition: "all 0.3s ease",
       ...positionStyles,
       ...typeStyles,
@@ -149,12 +149,13 @@ export default function Toast({
 // Helper function to get position-specific styles
 function getPositionStyles(position) {
   const baseOffset = "20px";
+  const navbarOffset = "80px"; // Adjust this if your navbar is taller
 
   switch (position) {
     case "top-left":
-      return { top: baseOffset, left: baseOffset };
+      return { top: navbarOffset, left: baseOffset };
     case "top-center":
-      return { top: baseOffset, left: "50%", transform: "translateX(-50%)" };
+      return { top: navbarOffset, left: "50%", transform: "translateX(-50%)" };
     case "bottom-right":
       return { bottom: baseOffset, right: baseOffset };
     case "bottom-left":
@@ -163,7 +164,7 @@ function getPositionStyles(position) {
       return { bottom: baseOffset, left: "50%", transform: "translateX(-50%)" };
     case "top-right":
     default:
-      return { top: baseOffset, right: baseOffset };
+      return { top: navbarOffset, right: baseOffset };
   }
 }
 
