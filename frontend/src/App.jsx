@@ -130,6 +130,11 @@ function App() {
                 path="/events"
                 element={<EventList showToast={showToast} />}
               />
+              {/* Add Event Details route with ID parameter */}
+              <Route
+                path="/events/:id"
+                element={<EventDetails showToast={showToast} />}
+              />
 
               {/* User Profile Route - Protected */}
               <Route
