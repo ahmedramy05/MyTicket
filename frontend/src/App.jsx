@@ -21,6 +21,10 @@ import RegisterForm from "./components/auth/RegisterForm";
 import EventList from "./components/events/EventList";
 import EventDetails from "./components/events/EventDetails"; // Import EventDetails component
 
+// Profile and Route Protection
+import ProfilePage from "./components/user/ProfilePage";
+import PrivateRoute from "./components/shared/PrivateRoute";
+
 // Loading component
 const LoadingSpinner = () => (
   <div
@@ -111,7 +115,7 @@ function App() {
               {/* Public Routes */}
               <Route path="/" element={<LandingPage showToast={showToast} />} />
 
-              {/* Auth Routes - Implemented */}
+              {/* Auth Routes */}
               <Route
                 path="/login"
                 element={<LoginForm showToast={showToast} />}
@@ -126,10 +130,15 @@ function App() {
                 path="/events"
                 element={<EventList showToast={showToast} />}
               />
-              {/* Add Event Details route with ID parameter */}
+
+              {/* User Profile Route - Protected */}
               <Route
-                path="/events/:id"
-                element={<EventDetails showToast={showToast} />}
+                path="/profile"
+                element={
+                  <PrivateRoute>
+                    <ProfilePage showToast={showToast} />
+                  </PrivateRoute>
+                }
               />
 
               {/* Basic informational pages */}
