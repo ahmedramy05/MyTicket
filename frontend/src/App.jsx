@@ -17,6 +17,9 @@ import LandingPage from "./LandingPage";
 import LoginForm from "./components/auth/LoginForm";
 import RegisterForm from "./components/auth/RegisterForm";
 
+// Event Components
+import EventList from "./components/events/EventList"; // Import EventList component
+
 // Loading component
 const LoadingSpinner = () => (
   <div
@@ -117,9 +120,10 @@ function App() {
                 element={<RegisterForm showToast={showToast} />}
               />
 
+              {/* Events Routes - Now using the real component instead of placeholder */}
               <Route
                 path="/events"
-                element={<ComingSoon title="Browse Events" />}
+                element={<EventList showToast={showToast} />}
               />
 
               {/* Basic informational pages */}

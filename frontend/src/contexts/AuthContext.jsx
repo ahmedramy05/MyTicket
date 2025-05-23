@@ -151,7 +151,7 @@ export const AuthProvider = ({ children }) => {
       setIsLoading(true);
       setError(null);
 
-      const response = await api.post("/api/v1/auth/forgetPassword", { email });
+      const response = await api.put("/api/v1/forgetPassword", { email });
 
       return {
         success: response.data.success,
@@ -173,12 +173,9 @@ export const AuthProvider = ({ children }) => {
       setIsLoading(true);
       setError(null);
 
-      const response = await api.post(
-        `/api/v1/auth/resetPassword/${resetToken}`,
-        {
-          password,
-        }
-      );
+      const response = await api.post(`/api/v1/resetPassword/${resetToken}`, {
+        password,
+      });
 
       return {
         success: response.data.success,
