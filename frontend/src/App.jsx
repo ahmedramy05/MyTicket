@@ -20,6 +20,8 @@ import RegisterForm from "./components/auth/RegisterForm";
 // Event Components
 import EventList from "./components/events/EventList";
 import EventDetails from "./components/events/EventDetails";
+import MyEventsPage from "./components/events/MyEventsPage";
+import EventForm from "./components/events/EventForm";
 
 // Profile and Route Protection
 import ProfilePage from "./components/user/ProfilePage";
@@ -147,6 +149,32 @@ function App() {
                 element={
                   <PrivateRoute>
                     <UserBookingsPage showToast={showToast} />
+                  </PrivateRoute>
+                }
+              />
+
+              {/* Organizer Routes - Protected */}
+              <Route
+                path="/my-events"
+                element={
+                  <PrivateRoute allowedRoles={["Organizer"]}>
+                    <MyEventsPage showToast={showToast} />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/my-events/new"
+                element={
+                  <PrivateRoute allowedRoles={["Organizer"]}>
+                    <EventForm showToast={showToast} />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/my-events/:id/edit"
+                element={
+                  <PrivateRoute allowedRoles={["Organizer"]}>
+                    <EventForm showToast={showToast} />
                   </PrivateRoute>
                 }
               />

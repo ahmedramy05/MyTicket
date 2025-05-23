@@ -128,7 +128,17 @@ const getOrganizerAnalytics = async (req, res) => {
 // Update Event Details (Organizer-Only)
 const updateEvent = async (req, res) => {
   try {
-    const { totalTickets, date, location } = req.body;
+    const { 
+      title, 
+      description, 
+      category, 
+      date, 
+      location, 
+      ticketPrice, 
+      totalTickets,
+      image 
+    } = req.body;
+    
     const eventId = req.params.id;
 
     // Find the event
@@ -140,32 +150,40 @@ const updateEvent = async (req, res) => {
     const isOrganizer = event.Organizer.toString() === req.user.id;
 
     if (!isAdmin && !isOrganizer) {
-      return res
-        .status(403)
-        .json({
-          error:
-            "Unauthorized. Only organizers and administrators can update events.",
-        });
+      return res.status(403).json({ 
+        error: "Unauthorized. Only organizers and administrators can update events." 
+      });
     }
 
-    // Update only the allowed fields (tickets, date, location)
+    // Create updates object with all fields
     const updates = {};
-    if (totalTickets) {
-      updates.totalTickets = totalTickets;
-      // Adjust availableTickets based on how many are already sold
-      const ticketsSold = event.totalTickets - event.availableTickets;
-      updates.availableTickets = totalTickets - ticketsSold;
-
-      // Check if new total is valid
-      if (updates.availableTickets < 0) {
-        return res
-          .status(400)
-          .json({ error: "Cannot reduce tickets below number already sold." });
-      }
-    }
-
+    
+    // Update basic details
+    if (title) updates.title = title;
+    if (description) updates.description = description;
+    if (category) updates.category = category;
     if (date) updates.date = date;
     if (location) updates.location = location;
+    if (ticketPrice) updates.ticketPrice = ticketPrice;
+    if (image !== undefined) updates.image = image;
+    
+    // Handle ticket updates
+    if (totalTickets) {
+      updates.totalTickets = totalTickets;
+      
+      // Calculate how many tickets have been sold
+      const ticketsSold = event.totalTickets - event.availableTickets;
+      
+      // Update available tickets
+      updates.availableTickets = totalTickets - ticketsSold;
+      
+      // Check if new total is valid
+      if (updates.availableTickets < 0) {
+        return res.status(400).json({ 
+          error: "Cannot reduce tickets below number already sold." 
+        });
+      }
+    }
 
     // Apply updates
     const updatedEvent = await Event.findByIdAndUpdate(eventId, updates, {
