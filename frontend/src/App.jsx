@@ -19,6 +19,7 @@ import RegisterForm from "./components/auth/RegisterForm";
 
 // Event Components
 import EventList from "./components/events/EventList";
+import EventDetails from "./components/events/EventDetails"; // Import EventDetails component
 
 // Profile and Route Protection
 import ProfilePage from "./components/user/ProfilePage";
@@ -128,6 +129,11 @@ function App() {
               <Route
                 path="/events"
                 element={<EventList showToast={showToast} />}
+              />
+              {/* Add Event Details route with ID parameter */}
+              <Route
+                path="/events/:id"
+                element={<EventDetails showToast={showToast} />}
               />
 
               {/* User Profile Route - Protected */}

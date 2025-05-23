@@ -1,34 +1,33 @@
-import { useState, useEffect, useContext } from "react";
-import { useParams, Link } from "react-router-dom";
-import {
-  Container,
-  Box,
-  Typography,
-  Paper,
-  Grid,
-  Chip,
-  Button,
-  Divider,
-  CircularProgress,
-  Alert,
-} from "@mui/material";
-import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
-import LocationOnIcon from "@mui/icons-material/LocationOn";
-import ConfirmationNumberIcon from "@mui/icons-material/ConfirmationNumber";
-import LocalOfferIcon from "@mui/icons-material/LocalOffer";
-import PersonIcon from "@mui/icons-material/Person";
-import BookTicketForm from "../bookings/BookTicketForm";
+import React, { useState, useEffect, useContext } from "react";
+import { useParams } from "react-router-dom";
+import Navbar from "../shared/Navbar";
+import Footer from "../shared/Footer";
+import { AuthContext } from "../../contexts/AuthContext";
 import api from "../../services/api";
 import { formatDate } from "../../utils/formatDate";
-import { AuthContext, AuthProvider } from "../../contexts/AuthContext";
 
-const EventDetails = () => {
+const EventDetails = ({ showToast }) => {
   const { id } = useParams();
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showBookForm, setShowBookForm] = useState(false);
   const { user } = useContext(AuthContext);
+
+  // Theme colors for consistent styling
+  const colors = {
+    primary: "#6366f1",
+    primaryDark: "#4f46e5",
+    accent: "#a855f7",
+    text: "#1f2937",
+    textSecondary: "#4b5563",
+    border: "#e5e7eb",
+    background: "#ffffff",
+    error: "#ef4444",
+    warning: "#f59e0b",
+    success: "#10b981",
+    shadow: "rgba(0, 0, 0, 0.1)",
+  };
 
   useEffect(() => {
     const fetchEventDetails = async () => {
@@ -50,176 +49,485 @@ const EventDetails = () => {
 
   if (loading) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", my: 5 }}>
-        <CircularProgress />
-      </Box>
+      <>
+        <Navbar />
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            padding: "80px 0",
+          }}
+        >
+          <div style={{ textAlign: "center" }}>
+            <div
+              style={{
+                border: "4px solid rgba(99, 102, 241, 0.1)",
+                borderLeftColor: colors.primary,
+                borderRadius: "50%",
+                width: "40px",
+                height: "40px",
+                display: "inline-block",
+                animation: "spin 1s linear infinite",
+              }}
+            />
+            <style>{`
+              @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+              }
+            `}</style>
+            <p style={{ marginTop: "16px", color: colors.textSecondary }}>
+              Loading event details...
+            </p>
+          </div>
+        </div>
+        <Footer />
+      </>
     );
   }
 
   if (error) {
     return (
-      <Container maxWidth="md" sx={{ py: 4 }}>
-        <Alert severity="error">{error}</Alert>
-      </Container>
+      <>
+        <Navbar />
+        <div
+          style={{ maxWidth: "800px", margin: "0 auto", padding: "32px 16px" }}
+        >
+          <div
+            style={{
+              backgroundColor: "#fef2f2",
+              color: colors.error,
+              padding: "16px",
+              borderRadius: "8px",
+              border: `1px solid ${colors.error}30`,
+            }}
+          >
+            <p style={{ margin: 0 }}>{error}</p>
+          </div>
+        </div>
+        <Footer />
+      </>
     );
   }
 
   if (!event) {
     return (
-      <Container maxWidth="md" sx={{ py: 4 }}>
-        <Alert severity="info">Event not found</Alert>
-      </Container>
+      <>
+        <Navbar />
+        <div
+          style={{ maxWidth: "800px", margin: "0 auto", padding: "32px 16px" }}
+        >
+          <div
+            style={{
+              backgroundColor: "#fef2f2",
+              color: colors.error,
+              padding: "16px",
+              borderRadius: "8px",
+              border: `1px solid ${colors.error}30`,
+            }}
+          >
+            <p style={{ margin: 0 }}>Event not found</p>
+          </div>
+        </div>
+        <Footer />
+      </>
     );
   }
 
   // Calculate ticket availability
-  const availableTickets = event.totalTickets - (event.bookedTickets || 0);
+  const totalTickets = event.totalTickets || 0;
+  const bookedTickets = event.bookedTickets || 0;
+  const availableTickets = totalTickets - bookedTickets;
   const isAvailable = availableTickets > 0;
+  const soldPercentage =
+    totalTickets > 0 ? Math.round((bookedTickets / totalTickets) * 100) : 0;
+
+  // Get availability color
+  const getAvailabilityColor = () => {
+    if (!isAvailable) return colors.error;
+    if (availableTickets < totalTickets * 0.1) return colors.warning;
+    return colors.success;
+  };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Paper elevation={3} sx={{ overflow: "hidden", borderRadius: 2 }}>
-        {/* Event Image */}
-        <Box
-          sx={{
-            height: { xs: 200, md: 300 },
-            width: "100%",
+    <>
+      <Navbar />
+
+      <div
+        style={{ maxWidth: "1200px", margin: "0 auto", padding: "32px 16px" }}
+      >
+        <div
+          style={{
+            border: `1px solid ${colors.border}`,
+            borderRadius: "12px",
             overflow: "hidden",
-            position: "relative",
+            backgroundColor: colors.background,
+            boxShadow: `0 4px 6px ${colors.shadow}`,
           }}
         >
-          <Box
-            component="img"
-            src={event.image || "https://source.unsplash.com/random?concert"}
-            alt={event.title}
-            sx={{
+          {/* Event header/image */}
+          <div
+            style={{
+              height: "300px",
               width: "100%",
-              height: "100%",
-              objectFit: "cover",
+              position: "relative",
+              backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.7)), url(${
+                event.image || "https://source.unsplash.com/random?event"
+              })`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              display: "flex",
+              alignItems: "flex-end",
+              padding: "24px",
             }}
-          />
-        </Box>
+          >
+            <div>
+              <div
+                style={{
+                  textTransform: "uppercase",
+                  fontSize: "14px",
+                  letterSpacing: "1px",
+                  color: "white",
+                  opacity: "0.8",
+                  marginBottom: "8px",
+                }}
+              >
+                {event.category}
+              </div>
+              <h1
+                style={{
+                  fontSize: "32px",
+                  fontWeight: "bold",
+                  color: "white",
+                  margin: "0 0 12px 0",
+                }}
+              >
+                {event.title}
+              </h1>
+              <span
+                style={{
+                  backgroundColor: isAvailable ? colors.success : colors.error,
+                  color: "white",
+                  padding: "4px 12px",
+                  borderRadius: "4px",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                }}
+              >
+                {isAvailable ? "Tickets Available" : "Sold Out"}
+              </span>
+            </div>
+          </div>
 
-        <Grid container sx={{ p: { xs: 2, md: 4 } }}>
-          {/* Event Details */}
-          <Grid item xs={12} md={8} sx={{ pr: { md: 4 } }}>
-            <Typography variant="h4" component="h1" gutterBottom>
-              {event.title}
-            </Typography>
+          {/* Event content */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: window.innerWidth <= 768 ? "column" : "row",
+              padding: "24px",
+            }}
+          >
+            {/* Left column - Event details */}
+            <div
+              style={{
+                flex: "2",
+                paddingRight: window.innerWidth <= 768 ? "0" : "24px",
+                marginBottom: window.innerWidth <= 768 ? "24px" : "0",
+              }}
+            >
+              <h2
+                style={{
+                  fontSize: "22px",
+                  marginBottom: "16px",
+                  color: colors.text,
+                  fontWeight: "600",
+                }}
+              >
+                About this event
+              </h2>
+              <p
+                style={{
+                  color: colors.textSecondary,
+                  lineHeight: "1.6",
+                  marginBottom: "24px",
+                }}
+              >
+                {event.description || "No description provided for this event."}
+              </p>
 
-            <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-              <CalendarTodayIcon sx={{ mr: 1 }} />
-              <Typography variant="body1">{formatDate(event.date)}</Typography>
-            </Box>
+              <h2
+                style={{
+                  fontSize: "22px",
+                  marginBottom: "16px",
+                  color: colors.text,
+                  fontWeight: "600",
+                }}
+              >
+                Event Details
+              </h2>
 
-            <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-              <LocationOnIcon sx={{ mr: 1 }} />
-              <Typography variant="body1">{event.location}</Typography>
-            </Box>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  marginBottom: "16px",
+                }}
+              >
+                <span style={{ marginRight: "12px", fontSize: "18px" }}>
+                  📅
+                </span>
+                <span style={{ color: colors.textSecondary }}>
+                  {formatDate(event.date)}
+                </span>
+              </div>
 
-            <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-              <PersonIcon sx={{ mr: 1 }} />
-              <Typography variant="body1">
-                Organized by: {event.organizer?.name || "Event Organizer"}
-              </Typography>
-            </Box>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  marginBottom: "16px",
+                }}
+              >
+                <span style={{ marginRight: "12px", fontSize: "18px" }}>
+                  📍
+                </span>
+                <span style={{ color: colors.textSecondary }}>
+                  {event.location}
+                </span>
+              </div>
 
-            {event.category && (
-              <Box sx={{ mb: 2 }}>
-                <Chip label={event.category} color="primary" />
-              </Box>
-            )}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  marginBottom: "16px",
+                }}
+              >
+                <span style={{ marginRight: "12px", fontSize: "18px" }}>
+                  💰
+                </span>
+                <span style={{ color: colors.textSecondary }}>
+                  ${event.ticketPrice}
+                </span>
+              </div>
 
-            <Divider sx={{ my: 3 }} />
-
-            <Typography variant="h6" gutterBottom>
-              About This Event
-            </Typography>
-
-            <Typography variant="body1" paragraph>
-              {event.description || "No description provided."}
-            </Typography>
-          </Grid>
-
-          {/* Ticket Info & Booking */}
-          <Grid item xs={12} md={4}>
-            <Paper elevation={2} sx={{ p: 3, borderRadius: 2 }}>
-              <Typography variant="h5" gutterBottom>
-                Ticket Information
-              </Typography>
-
-              <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                <LocalOfferIcon sx={{ mr: 1 }} />
-                <Typography variant="h6">${event.ticketPrice}</Typography>
-                <Typography variant="body2" sx={{ ml: 1 }}>
-                  per ticket
-                </Typography>
-              </Box>
-
-              <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
-                <ConfirmationNumberIcon sx={{ mr: 1 }} />
-                <Typography
-                  variant="body1"
-                  color={
-                    !isAvailable
-                      ? "error.main"
-                      : availableTickets < 10
-                      ? "warning.main"
-                      : "inherit"
-                  }
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  marginBottom: "16px",
+                }}
+              >
+                <span style={{ marginRight: "12px", fontSize: "18px" }}>
+                  🎟️
+                </span>
+                <span
+                  style={{
+                    color: getAvailabilityColor(),
+                    fontWeight:
+                      isAvailable && availableTickets < totalTickets * 0.1
+                        ? "bold"
+                        : "normal",
+                  }}
                 >
                   {!isAvailable
                     ? "Sold Out"
                     : `${availableTickets} tickets available`}
-                </Typography>
-              </Box>
+                </span>
+              </div>
+            </div>
 
-              {/* Booking Section */}
-              {user ? (
-                isAvailable ? (
-                  showBookForm ? (
-                    <BookTicketForm
-                      event={event}
-                      onCancel={() => setShowBookForm(false)}
-                      onBookingComplete={() => setShowBookForm(false)}
-                    />
-                  ) : (
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      fullWidth
-                      onClick={() => setShowBookForm(true)}
-                      disabled={!isAvailable}
-                    >
-                      Book Tickets
-                    </Button>
-                  )
-                ) : (
-                  <Alert severity="error" sx={{ mb: 2 }}>
-                    This event is sold out!
-                  </Alert>
-                )
-              ) : (
-                <Box>
-                  <Alert severity="info" sx={{ mb: 2 }}>
-                    Please log in to book tickets.
-                  </Alert>
-                  <Button
-                    component={Link}
-                    to="/login"
-                    variant="contained"
-                    color="primary"
-                    fullWidth
+            {/* Right column - Ticket summary */}
+            <div style={{ flex: "1" }}>
+              <div
+                style={{
+                  backgroundColor: colors.background,
+                  boxShadow: `0 2px 4px ${colors.shadow}`,
+                  borderRadius: "8px",
+                  padding: "24px",
+                  border: `1px solid ${colors.border}`,
+                }}
+              >
+                <h3
+                  style={{
+                    fontSize: "20px",
+                    marginTop: "0",
+                    marginBottom: "16px",
+                    color: colors.text,
+                    fontWeight: "600",
+                  }}
+                >
+                  Ticket Summary
+                </h3>
+
+                <div style={{ marginBottom: "16px" }}>
+                  <div
+                    style={{
+                      fontSize: "14px",
+                      color: colors.textSecondary,
+                      marginBottom: "4px",
+                    }}
                   >
-                    Log In
-                  </Button>
-                </Box>
-              )}
-            </Paper>
-          </Grid>
-        </Grid>
-      </Paper>
-    </Container>
+                    Price
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "20px",
+                      fontWeight: "600",
+                      color: colors.text,
+                    }}
+                  >
+                    ${event.ticketPrice}
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: "24px" }}>
+                  <div
+                    style={{
+                      fontSize: "14px",
+                      color: colors.textSecondary,
+                      marginBottom: "4px",
+                    }}
+                  >
+                    Availability
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: "16px",
+                        fontWeight: "600",
+                        color: getAvailabilityColor(),
+                      }}
+                    >
+                      {isAvailable
+                        ? `${availableTickets} tickets left`
+                        : "SOLD OUT"}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "14px",
+                        color: colors.textSecondary,
+                      }}
+                    >
+                      {soldPercentage}% sold
+                    </div>
+                  </div>
+
+                  {/* Progress bar */}
+                  <div
+                    style={{
+                      marginTop: "8px",
+                      backgroundColor: "#e5e7eb",
+                      height: "8px",
+                      borderRadius: "4px",
+                      overflow: "hidden",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: `${soldPercentage}%`,
+                        height: "100%",
+                        backgroundColor: getAvailabilityColor(),
+                        transition: "width 1s ease-in-out",
+                      }}
+                    />
+                  </div>
+
+                  {/* Urgency indicator */}
+                  {isAvailable && availableTickets <= totalTickets * 0.1 && (
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        marginTop: "12px",
+                        fontSize: "14px",
+                        color: colors.warning,
+                      }}
+                    >
+                      <span style={{ marginRight: "8px" }}>⚠️</span>
+                      Selling fast! Don't miss out.
+                    </div>
+                  )}
+                </div>
+
+                {/* Booking button or login prompt */}
+                {user ? (
+                  <button
+                    onClick={() =>
+                      showToast("Booking functionality coming soon!", "info")
+                    }
+                    disabled={!isAvailable}
+                    style={{
+                      width: "100%",
+                      backgroundColor: isAvailable ? colors.primary : "#cbd5e1",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "6px",
+                      padding: "12px 24px",
+                      fontSize: "16px",
+                      fontWeight: "500",
+                      cursor: isAvailable ? "pointer" : "not-allowed",
+                      transition: "background-color 0.2s",
+                      boxShadow: isAvailable
+                        ? `0 2px 4px ${colors.shadow}`
+                        : "none",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (isAvailable) {
+                        e.target.style.backgroundColor = colors.primaryDark;
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (isAvailable) {
+                        e.target.style.backgroundColor = colors.primary;
+                      }
+                    }}
+                  >
+                    {isAvailable ? "Book Tickets" : "Sold Out"}
+                  </button>
+                ) : (
+                  <a
+                    href="/login"
+                    style={{
+                      display: "block",
+                      textAlign: "center",
+                      width: "100%",
+                      backgroundColor: "transparent",
+                      color: colors.primary,
+                      border: `1px solid ${colors.primary}`,
+                      borderRadius: "6px",
+                      padding: "12px 24px",
+                      fontSize: "16px",
+                      fontWeight: "500",
+                      cursor: "pointer",
+                      textDecoration: "none",
+                      transition: "all 0.2s",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.backgroundColor = `${colors.primary}10`;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.backgroundColor = "transparent";
+                    }}
+                  >
+                    Log in to book tickets
+                  </a>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <Footer />
+    </>
   );
 };
 
