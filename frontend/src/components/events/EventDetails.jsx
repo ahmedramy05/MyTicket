@@ -50,6 +50,8 @@ const EventDetails = ({ showToast }) => {
   }, [id]);
 
   // Handle booking tickets
+  // Update the handleBookTickets function
+
   const handleBookTickets = async () => {
     if (!user || !event) return;
 
@@ -61,11 +63,6 @@ const EventDetails = ({ showToast }) => {
         tickets: ticketQuantity,
       });
 
-      // Update local event data to reflect the new ticket count
-      const updatedEvent = { ...event };
-      updatedEvent.bookedTickets = (event.bookedTickets || 0) + ticketQuantity;
-      setEvent(updatedEvent);
-
       // Close form and show success message
       setShowBookForm(false);
       showToast(
@@ -74,6 +71,10 @@ const EventDetails = ({ showToast }) => {
         }!`,
         "success"
       );
+
+      // Fetch updated event details after booking
+      const updatedEventResponse = await api.get(`/events/${id}`);
+      setEvent(updatedEventResponse.data);
     } catch (err) {
       console.error("Error booking tickets:", err);
       showToast(
@@ -83,6 +84,22 @@ const EventDetails = ({ showToast }) => {
       );
     } finally {
       setBookingLoading(false);
+    }
+  };
+  // Add this function before the renderBookingModal function
+
+  // Refresh ticket availability before attempting to book
+  const refreshTicketAvailability = async () => {
+    try {
+      const response = await api.get(`/events/${id}`);
+      if (response.data) {
+        setEvent(response.data);
+        return response.data.availableTickets;
+      }
+      return 0;
+    } catch (err) {
+      console.error("Error refreshing ticket availability:", err);
+      return 0;
     }
   };
 
@@ -354,8 +371,8 @@ const EventDetails = ({ showToast }) => {
 
   // Calculate ticket availability
   const totalTickets = event.totalTickets || 0;
-  const bookedTickets = event.bookedTickets || 0;
-  const availableTickets = totalTickets - bookedTickets;
+  const availableTickets = event.availableTickets || 0; // Use direct value from backend
+  const bookedTickets = totalTickets - availableTickets; // Calculate booked tickets if needed
   const isAvailable = availableTickets > 0;
   const soldPercentage =
     totalTickets > 0 ? Math.round((bookedTickets / totalTickets) * 100) : 0;
