@@ -1,16 +1,30 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../Models/User");
-//const BlacklistedToken = require("../Models/BlacklistedToken");
 const crypto = require("crypto");
-const nodemailer = require("nodemailer");
-// Fix this path to point to the correct location
 const transporter = require("../utils/EmailService");
+
+// OTP utility functions
+const generateOTP = () => {
+  // Generate a random 6-digit number
+  return Math.floor(100000 + Math.random() * 900000).toString();
+};
+
+const hashOTP = (otp, email) => {
+  return crypto
+    .createHash("sha256")
+    .update(otp + email)
+    .digest("hex");
+};
+
+const verifyOTPHash = (providedOTP, hashedOTP, email) => {
+  const hashedProvidedOTP = hashOTP(providedOTP, email);
+  return hashedProvidedOTP === hashedOTP;
+};
 
 // @desc    Register new user
 // @route   POST /auth/register
 // @access  Public
-
 exports.register = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
@@ -68,6 +82,9 @@ exports.register = async (req, res) => {
   }
 };
 
+// @desc    Login user - UPDATED for MFA
+// @route   POST /auth/login
+// @access  Public
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -90,13 +107,121 @@ exports.login = async (req, res) => {
       });
     }
 
-    // Create token
+    // Password is correct, now generate and send OTP
+    const otp = generateOTP();
+    const otpHash = hashOTP(otp, email);
+
+    // Create temporary JWT containing the hashed OTP
+    const tempToken = jwt.sign(
+      {
+        id: user._id,
+        email: user.email,
+        otpHash: otpHash,
+        pendingMFA: true,
+      },
+      process.env.JWT_SECRET || "your_jwt_secret",
+      { expiresIn: "10m" } // Short expiry for security
+    );
+
+    // Send OTP email
+    try {
+      await transporter.sendMail({
+        from: '"EventHub" <noreply@eventhub.com>',
+        to: user.email,
+        subject: "Your Login Verification Code",
+        html: `
+          <h2>Login Verification</h2>
+          <p>Your verification code is: <strong>${otp}</strong></p>
+          <p>This code will expire in 10 minutes.</p>
+          <p>If you didn't request this code, please ignore this email.</p>
+        `,
+      });
+
+      res.status(200).json({
+        success: true,
+        message: "Verification code sent to your email",
+        requireMFA: true,
+        tempToken: tempToken,
+        email: user.email,
+      });
+    } catch (emailError) {
+      console.error("Error sending OTP email:", emailError);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to send verification code. Please try again.",
+      });
+    }
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error during login",
+    });
+  }
+};
+
+// @desc    Verify OTP for MFA
+// @route   POST /auth/verify-otp
+// @access  Public (with temp token)
+exports.verifyOTP = async (req, res) => {
+  try {
+    const { otp } = req.body;
+    const tempToken = req.headers.authorization?.split(" ")[1];
+
+    if (!tempToken) {
+      return res.status(401).json({
+        success: false,
+        message: "Verification session expired. Please login again.",
+      });
+    }
+
+    // Verify temp token
+    let decoded;
+    try {
+      decoded = jwt.verify(
+        tempToken,
+        process.env.JWT_SECRET || "your_jwt_secret"
+      );
+    } catch (err) {
+      return res.status(401).json({
+        success: false,
+        message: "Verification session expired. Please login again.",
+      });
+    }
+
+    // Check if this is a pending MFA token
+    if (!decoded.pendingMFA || !decoded.otpHash) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid verification attempt",
+      });
+    }
+
+    // Find user
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Verify OTP
+    if (!verifyOTPHash(otp, decoded.otpHash, decoded.email)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired verification code",
+      });
+    }
+
+    // OTP is valid, generate full authentication token
     const token = jwt.sign(
       { id: user._id, role: user.role },
       process.env.JWT_SECRET || "your_jwt_secret",
       { expiresIn: "30d" }
     );
 
+    // Return full user data and token
     res.status(200).json({
       success: true,
       token,
@@ -108,10 +233,100 @@ exports.login = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Login error:", error);
+    console.error("OTP verification error:", error);
     res.status(500).json({
       success: false,
-      message: "Server error during login",
+      message: "Server error during verification",
+    });
+  }
+};
+
+// @desc    Resend OTP code
+// @route   POST /auth/resend-otp
+// @access  Public (with temp token)
+exports.resendOTP = async (req, res) => {
+  try {
+    const tempToken = req.headers.authorization?.split(" ")[1];
+
+    if (!tempToken) {
+      return res.status(401).json({
+        success: false,
+        message: "Verification session expired. Please login again.",
+      });
+    }
+
+    // Verify temp token
+    let decoded;
+    try {
+      decoded = jwt.verify(
+        tempToken,
+        process.env.JWT_SECRET || "your_jwt_secret"
+      );
+    } catch (err) {
+      return res.status(401).json({
+        success: false,
+        message: "Verification session expired. Please login again.",
+      });
+    }
+
+    // Check if this is a pending MFA token
+    if (!decoded.pendingMFA) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid verification attempt",
+      });
+    }
+
+    // Find user
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Generate new OTP
+    const otp = generateOTP();
+    const otpHash = hashOTP(otp, user.email);
+
+    // Create new temporary JWT
+    const newTempToken = jwt.sign(
+      {
+        id: user._id,
+        email: user.email,
+        otpHash: otpHash,
+        pendingMFA: true,
+      },
+      process.env.JWT_SECRET || "your_jwt_secret",
+      { expiresIn: "10m" }
+    );
+
+    // Send new OTP email
+    await transporter.sendMail({
+      from: '"EventHub" <noreply@eventhub.com>',
+      to: user.email,
+      subject: "Your New Login Verification Code",
+      html: `
+        <h2>Login Verification</h2>
+        <p>Your new verification code is: <strong>${otp}</strong></p>
+        <p>This code will expire in 10 minutes.</p>
+        <p>If you didn't request this code, please ignore this email.</p>
+      `,
+    });
+
+    // Return new temp token
+    res.status(200).json({
+      success: true,
+      message: "New verification code sent to your email",
+      tempToken: newTempToken,
+      email: user.email,
+    });
+  } catch (error) {
+    console.error("Resend OTP error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to send new verification code",
     });
   }
 };
@@ -119,23 +334,18 @@ exports.login = async (req, res) => {
 exports.logout = async (req, res) => {
   try {
     // Get token from authorization header
-    const token = req.headers.authorization.split(" ")[1];
+    const token = req.headers.authorization?.split(" ")[1];
 
-    // Decode token to get expiry time (without verifying)
-    const decoded = jwt.decode(token);
-
-    if (!decoded) {
+    if (!token) {
       return res.status(400).json({
         success: false,
-        message: "Invalid token format",
+        message: "No token provided",
       });
     }
 
-    // Add token to blacklist until its natural expiration
-    await BlacklistedToken.create({
-      token,
-      expiresAt: new Date(decoded.exp * 1000), // Convert from unix timestamp to Date
-    });
+    // Since we're not implementing token blacklisting in this version,
+    // we'll just return a success message
+    // In a production app, you would add the token to a blacklist
 
     res.status(200).json({
       success: true,
@@ -149,6 +359,7 @@ exports.logout = async (req, res) => {
     });
   }
 };
+
 exports.forgetPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -179,8 +390,8 @@ exports.forgetPassword = async (req, res) => {
     // Set token expire time (10 minutes)
     user.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
 
-    // Create reset URL - DEFINE THIS BEFORE USING IT
-    const resetUrl = `http://localhost:3001/api/v1/resetPassword/${resetToken}`;
+    // Create reset URL
+    const resetUrl = `http://localhost:3000/reset-password/${resetToken}`;
 
     // Create email message
     const message = {
@@ -191,6 +402,8 @@ exports.forgetPassword = async (req, res) => {
         <h1>You requested a password reset</h1>
         <p>Please click on the link below to reset your password:</p>
         <a href="${resetUrl}">${resetUrl}</a>
+        <p>This link will expire in 10 minutes.</p>
+        <p>If you didn't request this, please ignore this email.</p>
       `,
     };
 
@@ -201,34 +414,25 @@ exports.forgetPassword = async (req, res) => {
       // Try to send email
       await transporter.sendMail(message);
 
-      // For development purposes, return the token and URL
       return res.status(200).json({
         success: true,
         message: "Password reset email sent",
-        // Only in development:
-        resetToken,
-        resetUrl,
       });
     } catch (emailError) {
       console.error("Email sending failed:", emailError);
 
-      // Even if email fails, still return the token for testing
-      return res.status(200).json({
-        success: true,
-        message: "Email sending failed, but here's your reset token",
-        resetToken,
-        resetUrl,
+      // If email fails, clear the reset token and return error
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpire = undefined;
+      await user.save();
+
+      return res.status(500).json({
+        success: false,
+        message: "Email could not be sent",
       });
     }
   } catch (error) {
     console.error("Forgot password error:", error);
-
-    // If there's an error, remove reset token fields
-    if (user) {
-      user.resetPasswordToken = undefined;
-      user.resetPasswordExpire = undefined;
-      await user.save();
-    }
 
     return res.status(500).json({
       success: false,
