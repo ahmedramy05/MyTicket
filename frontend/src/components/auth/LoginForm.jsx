@@ -24,10 +24,22 @@ import EmailIcon from "@mui/icons-material/Email";
 import GoogleIcon from "@mui/icons-material/Google";
 import FacebookIcon from "@mui/icons-material/Facebook";
 import { AuthContext } from "../../contexts/AuthContext";
+import OTPVerification from "./OtpVerification"; // Add this import
 
 const LoginForm = ({ showToast }) => {
   const navigate = useNavigate();
-  const { login, forgotPassword, isLoading } = useContext(AuthContext);
+  const {
+    login,
+    forgotPassword,
+    isLoading,
+    // Add these MFA-related context values
+    mfaPending,
+    pendingEmail,
+    tempToken,
+    verifyOTP,
+    resetMFA,
+    handleVerificationSuccess,
+  } = useContext(AuthContext);
 
   // Form states
   const [formData, setFormData] = useState({
@@ -120,7 +132,7 @@ const LoginForm = ({ showToast }) => {
     return true;
   };
 
-  // Login form submission
+  // Login form submission - UPDATED to handle MFA
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitError(null);
@@ -134,14 +146,19 @@ const LoginForm = ({ showToast }) => {
 
     try {
       // Call login function from AuthContext
-      // Pass rememberMe parameter if your backend supports it
       const result = await login(formData.email, formData.password, rememberMe);
 
       if (result.success) {
-        if (showToast) {
-          showToast("Login successful! Welcome back!", "success");
+        // Check if MFA verification is required
+        if (!result.requireMFA) {
+          // If MFA not required (standard flow)
+          if (showToast) {
+            showToast("Login successful! Welcome back!", "success");
+          }
+          navigate("/");
         }
-        navigate("/"); // Redirect to home page
+        // If MFA required, component will re-render showing OTP verification
+        // because mfaPending will be true in the AuthContext
       } else {
         setSubmitError(
           result.message || "Login failed. Please check your credentials."
@@ -153,6 +170,22 @@ const LoginForm = ({ showToast }) => {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleVerifySuccess = (data) => {
+    // Use the context function to properly update auth state
+    handleVerificationSuccess(data);
+
+    // Show success message and redirect
+    if (showToast) {
+      showToast("Login successful! Welcome back!", "success");
+    }
+    navigate("/");
+  };
+
+  // Handle OTP verification cancel
+  const handleVerifyCancel = () => {
+    resetMFA(); // Reset MFA state in the context
   };
 
   // Forgot password form submission
@@ -410,6 +443,21 @@ const LoginForm = ({ showToast }) => {
     </Box>
   );
 
+  // ADD THIS CONDITIONAL RENDERING FOR OTP VERIFICATION
+  // If MFA verification is pending, show OTP verification component
+  if (mfaPending) {
+    return (
+      <OTPVerification
+        email={pendingEmail}
+        tempToken={tempToken}
+        onVerifySuccess={handleVerifySuccess}
+        onCancel={handleVerifyCancel}
+        showToast={showToast}
+      />
+    );
+  }
+
+  // Main component return (unchanged)
   return (
     <Container component="main" maxWidth="sm">
       <Paper
