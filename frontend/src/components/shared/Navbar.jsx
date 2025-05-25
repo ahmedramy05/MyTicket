@@ -247,13 +247,6 @@ export default function Navbar() {
             </div>
             {showUserMenu && (
               <div style={styles.userDropdown}>
-                <Link
-                  to="/dashboard"
-                  style={styles.dropdownItem}
-                  onClick={() => setShowUserMenu(false)}
-                >
-                  Dashboard
-                </Link>
                 <div style={styles.dropdownItem} onClick={handleProfileClick}>
                   Profile
                 </div>
@@ -272,6 +265,15 @@ export default function Navbar() {
                     onClick={() => setShowUserMenu(false)}
                   >
                     My Events
+                  </Link>
+                )}
+                {user.role === "System Admin" && (
+                  <Link
+                    to="/admin/users"
+                    style={styles.dropdownItem}
+                    onClick={() => setShowUserMenu(false)}
+                  >
+                    Admin Panel
                   </Link>
                 )}
                 <div style={styles.dropdownDivider}></div>
