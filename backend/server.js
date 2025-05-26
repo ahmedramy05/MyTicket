@@ -15,7 +15,13 @@ mongoose
 
 // Add this to your server.js BEFORE defining routes
 const cors = require("cors");
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:5173', // Development frontend
+    'https://my-ticket-kappa.vercel.app/' // Production frontend
+  ],
+  credentials: true
+}));
 
 app.use(express.json());
 app.use("/api/v1/users", require("./routes/users"));
