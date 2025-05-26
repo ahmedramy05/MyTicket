@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { AuthContext } from "../../contexts/AuthContext";
 
 export default function Navbar() {
@@ -9,6 +9,7 @@ export default function Navbar() {
   const { user, isAuthenticated, logout } = useContext(AuthContext);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Handle window resize for responsive design
   useEffect(() => {
@@ -213,8 +214,8 @@ export default function Navbar() {
         {/* Desktop Navigation */}
         <div style={styles.navLinks}>
           {[
-            { path: "/events", label: "Events" },
-            { path: "/about", label: "About" },
+            { path: "/events", label: "Events" }
+            // The About button has been removed.
           ].map((link) => (
             <Link
               key={link.path}
@@ -250,7 +251,6 @@ export default function Navbar() {
                 <div style={styles.dropdownItem} onClick={handleProfileClick}>
                   Profile
                 </div>
-                {/* My Bookings link for all authenticated users */}
                 <Link
                   to="/bookings"
                   style={styles.dropdownItem}
@@ -356,8 +356,8 @@ export default function Navbar() {
 
             {/* Mobile navigation links */}
             {[
-              { path: "/events", label: "Events" },
-              { path: "/about", label: "About" },
+              { path: "/events", label: "Events" }
+              // The About button has been removed.
             ].map((link) => (
               <Link
                 key={link.path}
@@ -392,7 +392,6 @@ export default function Navbar() {
                 >
                   Profile
                 </div>
-                {/* My Bookings link for all authenticated users */}
                 <Link
                   to="/bookings"
                   style={styles.mobileLink}
