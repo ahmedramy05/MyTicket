@@ -24,7 +24,7 @@ import EmailIcon from "@mui/icons-material/Email";
 import GoogleIcon from "@mui/icons-material/Google";
 import FacebookIcon from "@mui/icons-material/Facebook";
 import { AuthContext } from "../../contexts/AuthContext";
-import OTPVerification from "./OtpVerification"; // Add this import
+import OTPVerification from "./OTPVerification"; // Add this import
 
 const LoginForm = ({ showToast }) => {
   const navigate = useNavigate();
