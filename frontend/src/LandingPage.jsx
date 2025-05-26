@@ -259,20 +259,50 @@ export default function LandingPage() {
               Explore Events
             </Link>
             <Link
-              to="/how-it-works"
+              to="#"
               style={{
                 ...styles.secondaryButton,
                 fontSize: responsive("0.95rem", "1rem"),
+                marginLeft: "1rem",
+              }}
+              onClick={(e) => {
+                e.preventDefault();
+                const element = document.getElementById("how-it-works");
+                if (element) {
+                  element.scrollIntoView({ behavior: "smooth" });
+                }
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor =
-                  "rgba(255, 255, 255, 0.1)";
+                e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.1)";
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = "transparent";
               }}
             >
               How It Works
+            </Link>
+            <Link
+              to="#"
+              style={{
+                ...styles.secondaryButton,
+                fontSize: responsive("0.95rem", "1rem"),
+                marginLeft: "1rem",
+              }}
+              onClick={(e) => {
+                e.preventDefault();
+                const element = document.getElementById("about-us");
+                if (element) {
+                  element.scrollIntoView({ behavior: "smooth" });
+                }
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.1)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent";
+              }}
+            >
+              About Us
             </Link>
           </div>
         </div>
@@ -404,7 +434,7 @@ export default function LandingPage() {
       </section>
 
       {/* How It Works Section */}
-      <section style={styles.container}>
+      <section id="how-it-works" style={styles.container}>
         <h2 style={styles.sectionTitle}>How MyTicket Works</h2>
         <p style={styles.sectionSubtitle}>
           Simple steps to secure your spot at any event
@@ -659,6 +689,20 @@ export default function LandingPage() {
       </section>
 
       <Footer />
+
+      {/* About Us Section - Newly Added */}
+      <section id="about-us" style={styles.container}>
+        <h2 style={styles.sectionTitle}>About Us</h2>
+        <p style={styles.sectionSubtitle}>
+          Welcome to MyTicket, your go-to platform for reserving tickets seamlessly.
+          We simplify the ticket reservation process so you can enjoy your favorite events,
+          whether it’s a concert, sports event, theater performance, or conference.
+        </p>
+        <p style={{ textAlign: "center", fontSize: responsive("1rem", "1.1rem"), color: "#444", maxWidth: "800px", margin: "0 auto" }}>
+          Discover, select, and reserve your tickets in just a few clicks with our secure and user-friendly system.
+          Experience live events without the hassle – let MyTicket be your trusted partner in creating amazing moments.
+        </p>
+      </section>
     </>
   );
 }
