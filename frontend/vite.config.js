@@ -1,9 +1,5 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import { dependencies } from "./package.json"; // Import dependencies from package.json
-
-// Generate an array of all dependencies to mark them as external
-const externalDependencies = dependencies ? Object.keys(dependencies) : [];
 
 export default defineConfig({
   plugins: [react()],
@@ -15,9 +11,12 @@ export default defineConfig({
       },
     },
   },
-  build: {
-    rollupOptions: {
-      external: externalDependencies, // Mark all dependencies as external
-    },
-  },
+  // Remove the build.rollupOptions.external configuration
+  resolve: {
+    alias: {
+      // Ensure proper module resolution
+      'react': 'react',
+      'react-dom': 'react-dom'
+    }
+  }
 });
