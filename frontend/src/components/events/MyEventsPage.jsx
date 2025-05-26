@@ -5,7 +5,6 @@ import Navbar from '../shared/Navbar';
 import Footer from '../shared/Footer';
 import EventCard from './EventCard';
 import { AuthContext } from '../../contexts/AuthContext';
-import { Box, Button, Typography, Tabs, Tab, CircularProgress } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import BarChartIcon from '@mui/icons-material/BarChart';
 

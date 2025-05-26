@@ -20,7 +20,8 @@ import RegisterForm from "./components/auth/RegisterForm";
 // Event Components
 import EventList from "./components/events/EventList";
 import EventDetails from "./components/events/EventDetails";
-import MyEventsPage from "./components/events/MyEventsPage";
+
+import MyEventsPage from "./components/events/MyEventsPage"; // Added MyEventsPage import
 import EventForm from "./components/events/EventForm";
 import EventAnalytics from "./components/events/EventAnalytics"; 
 
@@ -149,6 +150,15 @@ function App() {
               <Route
                 path="/events/:id"
                 element={<EventDetails showToast={showToast} />}
+              />
+              {/* Added route for My Events */}
+              <Route
+                path="/my-events"
+                element={
+                  <PrivateRoute>
+                    <MyEventsPage />
+                  </PrivateRoute>
+                }
               />
 
               {/* Bookings Route - Protected for any authenticated user */}
