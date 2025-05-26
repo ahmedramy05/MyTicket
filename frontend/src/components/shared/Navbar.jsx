@@ -33,171 +33,171 @@ export default function Navbar() {
 
   const styles = {
     navbar: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      padding: '0.75rem 1.5rem',
-      backgroundColor: '#fff',
-      boxShadow: '0 2px 4px rgba(0,0,0,0.08)',
-      position: 'sticky',
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: "0.75rem 1.5rem",
+      backgroundColor: "#fff",
+      boxShadow: "0 2px 4px rgba(0,0,0,0.08)",
+      position: "sticky",
       top: 0,
       zIndex: 1000,
-      color: '#222',
+      color: "#222",
     },
     logo: {
-      display: 'flex',
-      alignItems: 'center',
-      fontWeight: '700',
-      fontSize: '1.5rem',
-      color: '#ff4d4d',
-      textDecoration: 'none',
+      display: "flex",
+      alignItems: "center",
+      fontWeight: "700",
+      fontSize: "1.5rem",
+      color: "#ff4d4d",
+      textDecoration: "none",
     },
     logoIcon: {
-      marginRight: '0.5rem',
-      color: '#ff4d4d',
+      marginRight: "0.5rem",
+      color: "#ff4d4d",
     },
     navLinks: {
-      display: 'flex',
-      gap: '1.5rem',
-      alignItems: 'center',
+      display: "flex",
+      gap: "1.5rem",
+      alignItems: "center",
     },
     link: {
-      textDecoration: 'none',
-      color: '#222',
-      fontWeight: '500',
-      padding: '0.5rem 0',
-      position: 'relative',
-      transition: 'all 0.2s ease',
+      textDecoration: "none",
+      color: "#222",
+      fontWeight: "500",
+      padding: "0.5rem 0",
+      position: "relative",
+      transition: "all 0.2s ease",
     },
     linkHover: {
-      color: '#ff4d4d',
+      color: "#ff4d4d",
     },
     activeLink: {
-      color: '#ff4d4d',
-      fontWeight: '600',
+      color: "#ff4d4d",
+      fontWeight: "600",
     },
     authButtons: {
-      display: 'flex',
-      gap: '1rem',
+      display: "flex",
+      gap: "1rem",
     },
     button: {
-      padding: '0.5rem 1rem',
-      borderRadius: '4px',
-      cursor: 'pointer',
-      fontWeight: '500',
-      transition: 'all 0.2s ease',
+      padding: "0.5rem 1rem",
+      borderRadius: "4px",
+      cursor: "pointer",
+      fontWeight: "500",
+      transition: "all 0.2s ease",
     },
     outlineButton: {
-      backgroundColor: 'white',
-      border: '1px solid #e0e0e0',
-      color: '#222',
+      backgroundColor: "white",
+      border: "1px solid #e0e0e0",
+      color: "#222",
     },
     primaryButton: {
-      backgroundColor: '#ff4d4d',
-      border: '1px solid #ff4d4d',
-      color: 'white',
+      backgroundColor: "#ff4d4d",
+      border: "1px solid #ff4d4d",
+      color: "white",
     },
     hamburger: {
-      display: isMobile ? 'flex' : 'none',
-      flexDirection: 'column',
-      cursor: 'pointer',
+      display: isMobile ? "flex" : "none",
+      flexDirection: "column",
+      cursor: "pointer",
     },
     hamburgerLine: {
-      width: '24px',
-      height: '2px',
-      backgroundColor: '#222',
-      marginBottom: '4px',
-      borderRadius: '5px',
+      width: "24px",
+      height: "2px",
+      backgroundColor: "#222",
+      marginBottom: "4px",
+      borderRadius: "5px",
     },
     mobileMenu: {
-      position: 'fixed',
-      top: '0',
-      left: '0',
-      right: '0',
-      bottom: '0',
-      backgroundColor: 'rgba(0,0,0,0.5)',
+      position: "fixed",
+      top: "0",
+      left: "0",
+      right: "0",
+      bottom: "0",
+      backgroundColor: "rgba(0,0,0,0.5)",
       zIndex: 1100,
     },
     mobileMenuContent: {
-      position: 'fixed',
-      top: '0',
-      right: '0',
-      bottom: '0',
-      width: '250px',
-      backgroundColor: 'white',
-      boxShadow: '-2px 0 5px rgba(0,0,0,0.1)',
-      padding: '2rem 1rem',
-      overflowY: 'auto',
+      position: "fixed",
+      top: "0",
+      right: "0",
+      bottom: "0",
+      width: "250px",
+      backgroundColor: "white",
+      boxShadow: "-2px 0 5px rgba(0,0,0,0.1)",
+      padding: "2rem 1rem",
+      overflowY: "auto",
     },
     closeButton: {
-      position: 'absolute',
-      top: '1rem',
-      right: '1rem',
-      background: 'none',
-      border: 'none',
-      fontSize: '1.5rem',
-      cursor: 'pointer',
-      color: '#222',
+      position: "absolute",
+      top: "1rem",
+      right: "1rem",
+      background: "none",
+      border: "none",
+      fontSize: "1.5rem",
+      cursor: "pointer",
+      color: "#222",
     },
     mobileHeader: {
-      marginBottom: '2rem',
+      marginBottom: "2rem",
     },
     mobileLink: {
-      display: 'block',
-      padding: '0.75rem 0',
-      borderBottom: '1px solid #f0f0f0',
-      textDecoration: 'none',
-      color: '#222',
-      fontWeight: '500',
+      display: "block",
+      padding: "0.75rem 0",
+      borderBottom: "1px solid #f0f0f0",
+      textDecoration: "none",
+      color: "#222",
+      fontWeight: "500",
     },
     userContainer: {
-      position: 'relative',
+      position: "relative",
     },
     userButton: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '8px',
-      cursor: 'pointer',
-      padding: '8px 12px',
-      borderRadius: '4px',
-      transition: 'all 0.2s ease',
-      color: '#222',
-      fontWeight: '500',
-      background: showUserMenu ? 'rgba(255, 77, 77, 0.08)' : 'transparent',
+      display: "flex",
+      alignItems: "center",
+      gap: "8px",
+      cursor: "pointer",
+      padding: "8px 12px",
+      borderRadius: "4px",
+      transition: "all 0.2s ease",
+      color: "#222",
+      fontWeight: "500",
+      background: showUserMenu ? "rgba(255, 77, 77, 0.08)" : "transparent",
     },
     userAvatar: {
-      width: '30px',
-      height: '30px',
-      borderRadius: '50%',
-      backgroundColor: '#ff4d4d',
-      color: 'white',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontWeight: 'bold',
+      width: "30px",
+      height: "30px",
+      borderRadius: "50%",
+      backgroundColor: "#ff4d4d",
+      color: "white",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontWeight: "bold",
     },
     userDropdown: {
-      position: 'absolute',
-      top: '45px',
-      right: '0',
-      backgroundColor: '#fff',
-      boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
-      borderRadius: '4px',
-      padding: '0.5rem 0',
-      minWidth: '180px',
+      position: "absolute",
+      top: "45px",
+      right: "0",
+      backgroundColor: "#fff",
+      boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)",
+      borderRadius: "4px",
+      padding: "0.5rem 0",
+      minWidth: "180px",
       zIndex: 1000,
     },
     dropdownItem: {
-      display: 'block',
-      padding: '8px 16px',
-      color: '#222',
-      textDecoration: 'none',
-      transition: 'all 0.2s ease',
-      cursor: 'pointer',
+      display: "block",
+      padding: "8px 16px",
+      color: "#222",
+      textDecoration: "none",
+      transition: "all 0.2s ease",
+      cursor: "pointer",
     },
     dropdownDivider: {
-      borderBottom: '1px solid #eee',
-      margin: '0.5rem 0',
+      borderBottom: "1px solid #eee",
+      margin: "0.5rem 0",
     },
   };
 
@@ -241,23 +241,13 @@ export default function Navbar() {
               onClick={() => setShowUserMenu(!showUserMenu)}
             >
               <div style={styles.userAvatar}>
-                {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                {user.name ? user.name.charAt(0).toUpperCase() : "U"}
               </div>
-              <span>{user.name || 'User'}</span>
+              <span>{user.name || "User"}</span>
             </div>
             {showUserMenu && (
               <div style={styles.userDropdown}>
-                <Link
-                  to="/dashboard"
-                  style={styles.dropdownItem}
-                  onClick={() => setShowUserMenu(false)}
-                >
-                  Dashboard
-                </Link>
-                <div
-                  style={styles.dropdownItem}
-                  onClick={handleProfileClick}
-                >
+                <div style={styles.dropdownItem} onClick={handleProfileClick}>
                   Profile
                 </div>
                 {/* My Bookings link for all authenticated users */}
@@ -288,7 +278,7 @@ export default function Navbar() {
                 )}
                 <div style={styles.dropdownDivider}></div>
                 <div
-                  style={{ ...styles.dropdownItem, cursor: 'pointer' }}
+                  style={{ ...styles.dropdownItem, cursor: "pointer" }}
                   onClick={handleLogout}
                 >
                   Log out
@@ -303,7 +293,9 @@ export default function Navbar() {
                 style={{
                   ...styles.button,
                   ...styles.outlineButton,
-                  ...(hoveredLink === "login" ? { backgroundColor: "#f5f5f5" } : {}),
+                  ...(hoveredLink === "login"
+                    ? { backgroundColor: "#f5f5f5" }
+                    : {}),
                 }}
                 onMouseEnter={() => setHoveredLink("login")}
                 onMouseLeave={() => setHoveredLink(null)}
@@ -316,7 +308,9 @@ export default function Navbar() {
                 style={{
                   ...styles.button,
                   ...styles.primaryButton,
-                  ...(hoveredLink === "signup" ? { backgroundColor: "#ff3333" } : {}),
+                  ...(hoveredLink === "signup"
+                    ? { backgroundColor: "#ff3333" }
+                    : {}),
                 }}
                 onMouseEnter={() => setHoveredLink("signup")}
                 onMouseLeave={() => setHoveredLink(null)}
@@ -425,7 +419,7 @@ export default function Navbar() {
                   </Link>
                 )}
                 <div
-                  style={{ ...styles.mobileLink, cursor: 'pointer' }}
+                  style={{ ...styles.mobileLink, cursor: "pointer" }}
                   onClick={() => {
                     handleLogout();
                     setIsOpen(false);

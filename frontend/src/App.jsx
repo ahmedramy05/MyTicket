@@ -244,7 +244,7 @@ function App() {
                 path="/how-it-works"
                 element={<ComingSoon title="How It Works" />}
               />
-              
+
               {/* Unauthorized access page */}
               <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
