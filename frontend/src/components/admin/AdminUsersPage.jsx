@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Container, 
   Typography, 
@@ -14,15 +15,18 @@ import {
   Box,
   CircularProgress,
   Alert,
-  Pagination
+  Pagination,
+  Button
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
+import EventIcon from '@mui/icons-material/Event';
 import UserRow from './UserRow';
 import UpdateUserRoleModal from './UpdateUserRoleModal';
 import ConfirmationDialog from './ConfirmationDialog';
 import api from '../../services/api';
 
 const AdminUsersPage = () => {
+  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -140,9 +144,20 @@ const AdminUsersPage = () => {
   
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        User Management
-      </Typography>
+      {/* Header with navigation button */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h4" component="h1">
+          User Management
+        </Typography>
+        <Button 
+          variant="contained" 
+          color="primary" 
+          startIcon={<EventIcon />}
+          onClick={() => navigate('/admin/events')}
+        >
+          Manage Events
+        </Button>
+      </Box>
       
       {error && (
         <Alert severity="error" sx={{ mb: 3 }}>
